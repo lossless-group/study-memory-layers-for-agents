@@ -48,6 +48,25 @@ When reading each entry below, the working checklist is:
   starred entry in this space (54k+) and the most explicit about being a
   *layer* rather than a framework.
 
+### [neo](./neo)
+- **Repo:** https://github.com/Parslee-ai/neo — *A self-improving code
+  reasoning engine with persistent semantic memory*
+- **Maintainer:** Parslee AI (`Parslee-ai` org)
+- **Why this is here:** A reasoning engine, not a framework — the memory
+  is *the point*, not a feature bolted on. Worth comparing schema and
+  write-policy choices against Mem0 and Graphiti. Smaller surface than
+  the major players, which makes it easier to read end-to-end.
+
+### [statebench](./statebench)
+- **Repo:** https://github.com/Parslee-ai/statebench — *Conformance test
+  for stateful AI agents. Measures state correctness over time.*
+- **Maintainer:** Parslee AI (`Parslee-ai` org)
+- **Why this is here:** A *benchmark* rather than an implementation —
+  fills a different slot in the study. Pinning it lets us evaluate the
+  memory-layer implementations against a common harness, instead of
+  trusting each project's self-reported numbers. Pair it with Mem0 and
+  neo as the units under test.
+
 ---
 
 ## Candidates to add (verified to exist on GitHub)
