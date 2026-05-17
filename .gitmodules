@@ -7,3 +7,15 @@
 [submodule "statebench"]
 	path = statebench
 	url = https://github.com/Parslee-ai/statebench.git
+[submodule "volt"]
+	path = volt
+	url = https://github.com/Martian-Engineering/volt.git
+[submodule "mempalace"]
+	path = mempalace
+	url = https://github.com/MemPalace/mempalace.git
+[submodule "graphiti"]
+	path = graphiti
+	url = https://github.com/getzep/graphiti.git
+[submodule "delta-mem"]
+	path = delta-mem
+	url = https://github.com/declare-lab/delta-Mem.git

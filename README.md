@@ -36,6 +36,20 @@ When reading each entry below, the working checklist is:
 
 ---
 
+## The design space at a glance
+
+| Bet | Entry |
+|---|---|
+| Memory baked into the model (frozen-backbone transformer adapter) | [Delta-Mem](./delta-mem) |
+| Real typed bi-temporal graph | [Graphiti](./graphiti) |
+| Hybrid vector + entity-link + tight CRUD API | [Mem0](./mem0) |
+| Verbatim chunks + hybrid recall, no extraction | [MemPalace](./mempalace) |
+| Typed/scoped facts + deterministic supersession + outcome learning | [Neo](./neo) |
+| Immutable Postgres log + summary DAG | [Volt](./volt) |
+| Conformance benchmark (the yardstick) | [StateBench](./statebench) |
+
+Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
+
 ## In the study now
 
 ### [mem0](./mem0)
@@ -56,6 +70,84 @@ When reading each entry below, the working checklist is:
   is *the point*, not a feature bolted on. Worth comparing schema and
   write-policy choices against Mem0 and Graphiti. Smaller surface than
   the major players, which makes it easier to read end-to-end.
+
+### [delta-mem](./delta-mem)
+- **Repo:** https://github.com/declare-lab/delta-Mem —
+  *δ-mem: Efficient Online Memory for Large Language Models*
+- **Maintainer:** declare-lab (SUTD) — Jingdi Lei, Di Zhang, Junxian Li,
+  Weida Wang, Kaixuan Fan, Xiang Liu, Qihan Liu, Xiaoteng Ma, Baian Chen,
+  Soujanya Poria
+- **Why this is here:** The architectural counter-bet to every other
+  entry. While Mem0, MemPalace, Graphiti, Neo, and Volt all answer "where
+  does the agent store and look things up," Delta-Mem answers "what if
+  memory was part of the model's forward pass?" A frozen-backbone
+  transformer adapter that gives each attention head a low-rank dense
+  **state matrix** updated by a learned **delta rule** (S_{t+1} = λ·S_t
+  − β·(S_t·k_t)⊗k_t + β·v_t⊗k_t), with three temporal write
+  granularities (TSW/SSW/MSW), a Triton-accelerated affine scan, and a
+  public Qwen3-4B-Instruct adapter on Hugging Face. Released alongside
+  [arXiv:2605.12357](https://arxiv.org/abs/2605.12357). Evaluated on
+  LoCoMo, HotpotQA, IFEval, GPQA Diamond, and MemoryAgentBench. This is
+  a research artifact (not a deployable library), and that's the point —
+  it forces the question "is agent memory even a retrieval problem?"
+  that the system-level entries quietly assume.
+
+### [graphiti](./graphiti)
+- **Repo:** https://github.com/getzep/graphiti — *Build Real-Time Knowledge
+  Graphs for AI Agents*
+- **Maintainer:** Zep Software, Inc. (Paul Paliychuk, Preston Rasmussen,
+  Daniel Chalef)
+- **Why this is here:** The only entry in the study that puts a real,
+  typed, **bi-temporal graph** between the agent and its memories — four
+  interchangeable Cypher-flavoured backends (Neo4j, FalkorDB, Kuzu,
+  Neptune), a single-LLM-call episode-to-graph extraction pipeline with
+  Pydantic-typed entities, hybrid BM25 + cosine + BFS recall with
+  cross-encoder reranking, and label-propagation community detection.
+  Every edge carries both `valid_at`/`invalid_at` (real-world validity)
+  and `created_at`/`expired_at` (system time) — textbook bi-temporality
+  brought to agent memory. Backed by a peer-reviewed paper
+  ([*Zep: A Temporal Knowledge Graph Architecture for Agent
+  Memory*](https://arxiv.org/abs/2501.13956)). The interesting
+  comparison is Graphiti vs MemPalace: opposite bets on structure
+  (MemPalace says structure is over-engineered; Graphiti says it's
+  under-engineered).
+
+### [mempalace](./mempalace)
+- **Repo:** https://github.com/MemPalace/mempalace — *The best-benchmarked
+  open-source AI memory system. And it's free.*
+- **Maintainer:** MemPalace Contributors (`MemPalace` org; milla-jovovich,
+  @bensig)
+- **Why this is here:** The most direct counter-bet to Mem0 in the study.
+  Same problem space (give agents persistent memory), nearly opposite
+  design choice at the write step: MemPalace stores **verbatim text** —
+  no LLM-driven extraction, no summarization — in ChromaDB
+  (`mempalace_drawers` + `mempalace_closets`) plus a local SQLite
+  temporal entity graph. Recall is hybrid (semantic + BM25 + closet-boost,
+  closets *signal* never *gate*), and the published benchmarks
+  (`benchmarks/BENCHMARKS.md`) report 96.6% R@5 on LongMemEval with **zero
+  LLM calls** at query time, and 92.9% vs Mem0's 30–45% on ConvoMem — a
+  ~2× margin attributed directly to extraction losing information.
+  Inspired by Zettelkasten + Method of Loci (`MISSION.md`). The
+  benchmark-honesty note in `BENCHMARKS.md:70-95` (the 100% headline
+  involved teaching-to-test; the held-out figure is 98.4%) is worth
+  reading in its own right.
+
+### [volt](./volt)
+- **Repo:** https://github.com/Martian-Engineering/volt — *Coding agent with
+  lossless context management*
+- **Maintainer:** Martian Engineering (`Martian-Engineering` org)
+- **Why this is here:** A coding agent built around **Lossless Context
+  Management (LCM)** — a dual-state design where every user message,
+  assistant response, and tool result is persisted verbatim (immutable
+  store) and the active context is assembled from recent raw messages plus
+  precomputed summary nodes. Storage is a DAG in embedded Postgres
+  (`voltcode_lcm`, optional external via `LCM_DATABASE_URL`). The
+  write/summarize policy is **deterministic** (soft/hard token thresholds
+  drive a control loop), not LLM-decided — a useful contrast against
+  Mem0's adaptive updates and Letta's self-editing memory. Two runtime
+  modes (Dolt: evict oldest with ghost-cue off-context retrieval; Upward:
+  recursive bottom-up condensation, default) make the eviction/compaction
+  trade-off explicit and readable.
 
 ### [statebench](./statebench)
 - **Repo:** https://github.com/Parslee-ai/statebench — *Conformance test
