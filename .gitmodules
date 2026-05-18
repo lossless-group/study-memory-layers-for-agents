@@ -19,3 +19,6 @@
 [submodule "delta-mem"]
 	path = delta-mem
 	url = https://github.com/declare-lab/delta-Mem.git
+[submodule "letta"]
+	path = letta
+	url = https://github.com/letta-ai/letta.git

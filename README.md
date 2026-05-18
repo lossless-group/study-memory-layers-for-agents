@@ -42,6 +42,7 @@ When reading each entry below, the working checklist is:
 |---|---|
 | Memory baked into the model (frozen-backbone transformer adapter) | [Delta-Mem](./delta-mem) |
 | Real typed bi-temporal graph | [Graphiti](./graphiti) |
+| Self-editing core memory + paged archival (the MemGPT lineage) | [Letta](./letta) |
 | Hybrid vector + entity-link + tight CRUD API | [Mem0](./mem0) |
 | Verbatim chunks + hybrid recall, no extraction | [MemPalace](./mempalace) |
 | Typed/scoped facts + deterministic supersession + outcome learning | [Neo](./neo) |
@@ -91,6 +92,32 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   a research artifact (not a deployable library), and that's the point —
   it forces the question "is agent memory even a retrieval problem?"
   that the system-level entries quietly assume.
+
+### [letta](./letta)
+- **Repo:** https://github.com/letta-ai/letta — *Platform for building
+  stateful agents: AI with advanced memory that can learn and
+  self-improve over time*
+- **Maintainer:** letta-ai (formerly MemGPT-ai; Charles Packer, Sarah
+  Wooders et al.)
+- **Why this is here:** The direct successor to **MemGPT** — the 2023
+  Berkeley paper that named the agent-memory problem and shipped the
+  OS-inspired hierarchical-memory pattern (core context = RAM, archival
+  = disk, recall = paging). The MemGPT lineage is the framing fact.
+  Letta is the operational productization: every agent is a persistent
+  Postgres row, **core memory** is a set of agent-editable **Blocks**
+  rendered into the system prompt, **archival memory** is a paginated
+  pgvector-backed passage store with semantic search. The agent edits
+  its own memory via `core_memory_append` / `core_memory_replace` —
+  the headline MemGPT design move that no other entry in the study
+  replicates. Ships as a FastAPI + Postgres + pgvector compose stack
+  with REST, WebSocket, and an **OpenAI-compatible
+  `/v1/chat/completions` endpoint** so a Letta agent looks like a
+  ChatGPT-shaped model to any client. **Multi-agent block sharing** is
+  a database join (a single Block row can belong to many agents). The
+  newer **git-backed memory mode** renders blocks as files
+  (`system/persona.md`, `skills/.../SKILL.md`) and turns every memory
+  edit into a commit — making it the closest entry in the study to our
+  own `context-vigilance` discipline, but with the agent as committer.
 
 ### [graphiti](./graphiti)
 - **Repo:** https://github.com/getzep/graphiti — *Build Real-Time Knowledge
