@@ -47,6 +47,13 @@ When reading each entry below, the working checklist is:
 | Verbatim chunks + hybrid recall, no extraction | [MemPalace](./mempalace) |
 | Typed/scoped facts + deterministic supersession + outcome learning | [Neo](./neo) |
 | Immutable Postgres log + summary DAG | [Volt](./volt) |
+| Folder → in-process NetworkX KG + Leiden + MCP query surface | [Graphify](./graphify) |
+| Multi-peer "theory of mind" — what A knows about B, derived async | [Honcho](./honcho) |
+| Context as a filesystem; L0/L1/L2 abstract tiers; unified memories + resources + skills | [OpenViking](./openviking) |
+| Typed memory taxonomy (world facts / experiences / mental models) + bank-based scoping | [Hindsight](./hindsight) |
+| 12+ semantic categories with bi-temporal validity (validFrom/validUntil) | [RetainDB](./retaindb) |
+| Universal RAG + memory layer, currently top of LongMemEval / LoCoMo / ConvoMem | [Supermemory](./supermemory) |
+| Coding-agent context tree (CLI + optional cloud sync; Elastic-licensed) | [ByteRover CLI](./byterover-cli) |
 | Conformance benchmark (the yardstick) | [StateBench](./statebench) |
 
 Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
@@ -175,6 +182,161 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   modes (Dolt: evict oldest with ghost-cue off-context retrieval; Upward:
   recursive bottom-up condensation, default) make the eviction/compaction
   trade-off explicit and readable.
+
+### [graphify](./graphify)
+- **Repo:** https://github.com/safishamsi/graphify — *AI coding assistant
+  skill that turns any folder of code, docs, papers, images, or videos
+  into a queryable knowledge graph*
+- **Maintainer:** Safi Shamsi (`safishamsi`); MIT licensed; PyPI package
+  `graphifyy`
+- **Why this is here:** The codebase-as-memory bet. Where every other
+  entry models *conversational* memory (user / session / agent turns),
+  Graphify models the **static corpus an agent works against** as a
+  persistent, queryable knowledge graph and exposes it to the agent via
+  **MCP** (`graphify/serve.py:1`). The pipeline is single-process and
+  legible end-to-end: `detect → extract → build → cluster → analyze →
+  report → export` (`ARCHITECTURE.md`), with tree-sitter parsers for
+  ~30 languages emitting `{nodes, edges}` dicts that get folded into a
+  NetworkX graph, **Leiden community detection** via graspologic with a
+  NetworkX-Louvain fallback (`graphify/cluster.py:48-76`), and
+  per-extraction **confidence labels** (`EXTRACTED` / `INFERRED` /
+  `AMBIGUOUS`) carried on every edge so the agent can reason about how
+  much to trust each relation. The MCP server exposes graph-query tools
+  (`query_graph`, `get_neighbors`, `get_community`, `god_nodes`,
+  `shortest_path`, PR-triage tools) — so "memory" here is structural
+  recall over the project, not episodic recall over a conversation. The
+  interesting contrast is against Graphiti and MemPalace: Graphiti puts
+  a *bi-temporal* graph DB between agent and memory; MemPalace stores
+  verbatim chunks; Graphify denies the graph-DB premise altogether and
+  ships the graph as a single `graph.json` next to a static HTML viewer.
+  A useful "do we even need a server?" data point in a study otherwise
+  dominated by server-backed designs.
+
+### [honcho](./honcho)
+- **Repo:** https://github.com/plastic-labs/honcho — *Build AI agents
+  that truly know your users*
+- **Maintainer:** Plastic Labs (`plastic-labs` org); AGPL-3.0
+- **Why this is here:** The only entry in the study that puts a
+  **multi-peer / theory-of-mind** model at the center of the design.
+  Where Mem0 models memories *belonging to a user* and Letta models
+  memories *editable by an agent*, Honcho models *what one peer
+  understands about another* — `peers`, `sessions`, `messages`,
+  `workspaces` as primary entities, with vector-embedded "internal
+  collections" keyed by the (observer, observed) pair. Write path is
+  **append-only messages + async background reasoning**: new messages
+  immutably persist, and a *deriver* worker generates summaries, peer
+  cards, and conclusions out-of-band. This is closer to the "agents
+  building rich models of users" framing that Plastic Labs' research
+  thread (Open Source Honcho, the "Tutor-GPT" lineage) has been chasing
+  since 2023, and it's the cleanest example in the study of separating
+  *storage* from *understanding*. Worth comparing the deriver to Volt's
+  deterministic summary thresholds — both are explicit, neither blocks
+  the agent loop.
+
+### [openviking](./openviking)
+- **Repo:** https://github.com/volcengine/OpenViking — *An open-source
+  context database for AI agents (file-system paradigm)*
+- **Maintainer:** Volcengine (ByteDance's cloud division); AGPL-3.0
+  main / Apache-2.0 CLI + examples
+- **Why this is here:** The most architecturally distinct entry on the
+  storage side. OpenViking refuses the flat-vector premise entirely and
+  organizes context as a **filesystem** — `viking://resources/`,
+  `viking://user/`, `viking://agent/` — with three abstraction tiers
+  per node (**L0** one-sentence abstract, **L1** overview, **L2** full
+  data) so retrieval can match at the coarsest tier and drill down
+  on demand. "Directory recursive retrieval" combines vector search
+  with hierarchical navigation. Unifies what every other study entry
+  treats as separate concerns: **memories** (user / agent task),
+  **resources** (docs, repos), and **skills** (agent instructions)
+  are all just nodes in the same tree. ByteDance-scale backing is the
+  operational story (Rust core in `crates/`, multi-language CLI, Docker
+  deploy). The interesting compare-and-contrast is against Letta's
+  git-backed memory mode (which also renders memory as files but on a
+  flat-ish layout) and against Graphify (which also collapses
+  resource-as-context but as a knowledge graph rather than a tree).
+
+### [hindsight](./hindsight)
+- **Repo:** https://github.com/vectorize-io/hindsight — *Agent memory
+  system that helps AI agents learn over time*
+- **Maintainer:** Vectorize.io (`vectorize-io` org); MIT
+- **Why this is here:** The first entry in the study to commit to a
+  **typed memory taxonomy** as a first-class axis: every memory is one
+  of *world fact*, *experience*, or *mental model*. Storage is
+  deliberately polyglot — vector for semantics, graph for entity /
+  causal links, time series for temporal context, BM25 for lexical
+  match — and recall is a three-verb surface (`retain`, `recall`,
+  `reflect`) where `reflect` is the unusual one: the agent analyzes
+  its *own existing memories* rather than the world. Per-user /
+  per-agent isolation lives in a "bank" abstraction. Ships as a full
+  open-source stack — Python API, Node/Python SDKs, CLI, Docker /
+  Helm — not a wrapper around a hosted service. The compare-and-
+  contrast against Mem0 is direct: same hybrid-retrieval thesis, but
+  Hindsight argues the *type of memory* (epistemic vs. experiential
+  vs. inferential) should drive write, not just retrieval ranking.
+
+### [retaindb](./retaindb)
+- **Repo:** https://github.com/RetainDB/RetainDB — *Durable memory for
+  AI agents — decisions, preferences, workflows, corrections, project
+  facts, session handoffs that survive across conversations*
+- **Maintainer:** RetainDB organization; Apache-2.0 (local / SDK / MCP),
+  BSL-1.1 (server)
+- **Why this is here:** Pushes the typed-memory bet further than
+  Hindsight — **12+ semantic categories** (factual, preference,
+  procedural, decision, constraint, correction, session-summary, etc.)
+  — and pairs it with **bi-temporal validity** (`validFrom` /
+  `validUntil`) so superseding stale facts is an explicit, queryable
+  operation rather than something the recall ranker has to paper over.
+  Hybrid retrieval is "lexical + vector + graph signals + RRF fusion +
+  reranking." Three deployment modes (Local single-machine, Server with
+  Postgres + pgvector, managed Cloud) cover the same "library / server
+  / hosted" trifecta Mem0 ships, but the BSL-licensed server is the
+  flag for anyone planning on commercial hosting. The contrast against
+  Mem0 is direct on the supersession axis (Mem0 has none in OSS;
+  RetainDB makes it a first-class column) and against Neo on the
+  *typed-categories-vs-typed-facts* axis (Neo carries a `superseded_by`
+  chain on a single fact type; RetainDB enumerates categories).
+
+### [supermemory](./supermemory)
+- **Repo:** https://github.com/supermemoryai/supermemory — *The memory
+  and context layer for AI*
+- **Maintainer:** supermemoryai research lab; MIT
+- **Why this is here:** The current benchmark-leaderboard occupant —
+  ranked **#1 on LongMemEval, LoCoMo, and ConvoMem** as of mid-2026,
+  the three headline harnesses every other entry in this study reports
+  against (compare to MemPalace's 96.6% R@5 on LongMemEval and Mem0's
+  91.6 / 93.4 on LoCoMo / LongMemEval — the leaderboard moves fast).
+  At ~22.7k stars and 1,600+ commits, the most active OSS entry after
+  Mem0 / Letta. Design surface is the **universal RAG + memory** bet:
+  fact extraction from conversations + user-profile maintenance +
+  hybrid search + multimodal ingest + external connectors (Google
+  Drive, Notion, GitHub) that sync content into the same store. Scopes
+  are `containerTag` (typically a user id) plus optional project tags.
+  Claims to handle "temporal changes, contradictions, and automatic
+  forgetting" — which makes the comparison against StateBench (the
+  yardstick) the obvious next step.
+
+### [byterover-cli](./byterover-cli)
+- **Repo:** https://github.com/campfirein/byterover-cli — *Memory Hub
+  for AI coding agents to remember*
+- **Maintainer:** ByteRover team (`campfirein` org)
+- **License note:** **Elastic License 2.0** — source-available, not
+  OSI-open-source. Commercial use is restricted. We pin it for study
+  reading; do not vendor the code into a product without reading the
+  license.
+- **Why this is here:** The only entry in the study focused
+  specifically on **coding-agent memory** as an end-user product
+  (compare to Volt, which is also coding-agent-shaped but ships as a
+  full agent; ByteRover is *just* the memory hub). Organizes codebase
+  knowledge into a **context tree** with local file-based storage and
+  optional cloud sync. Project-level scope (per directory),
+  multi-machine access, team sharing via ByteRover Cloud. Integrates
+  with Cursor, Claude Code, and 20+ LLM providers as the consumer
+  surface. The reason it earns a pin despite the licensing caveat:
+  the **CLI + REPL + dashboard** packaging is a distinct deployment
+  story (most other entries assume the agent is the only consumer; here
+  the human and the agent are both editors of the same context tree)
+  and worth studying as one possible answer to "how does a *team* of
+  developers share agent memory."
 
 ### [statebench](./statebench)
 - **Repo:** https://github.com/Parslee-ai/statebench — *Conformance test

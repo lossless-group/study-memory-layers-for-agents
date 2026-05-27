@@ -22,3 +22,24 @@
 [submodule "letta"]
 	path = letta
 	url = https://github.com/letta-ai/letta.git
+[submodule "graphify"]
+	path = graphify
+	url = https://github.com/safishamsi/graphify.git
+[submodule "honcho"]
+	path = honcho
+	url = https://github.com/plastic-labs/honcho.git
+[submodule "openviking"]
+	path = openviking
+	url = https://github.com/volcengine/OpenViking.git
+[submodule "hindsight"]
+	path = hindsight
+	url = https://github.com/vectorize-io/hindsight.git
+[submodule "retaindb"]
+	path = retaindb
+	url = https://github.com/RetainDB/RetainDB.git
+[submodule "supermemory"]
+	path = supermemory
+	url = https://github.com/supermemoryai/supermemory.git
+[submodule "byterover-cli"]
+	path = byterover-cli
+	url = https://github.com/campfirein/byterover-cli.git
