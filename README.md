@@ -54,6 +54,7 @@ When reading each entry below, the working checklist is:
 | 12+ semantic categories with bi-temporal validity (validFrom/validUntil) | [RetainDB](./retaindb) |
 | Universal RAG + memory layer, currently top of LongMemEval / LoCoMo / ConvoMem | [Supermemory](./supermemory) |
 | Coding-agent context tree (CLI + optional cloud sync; Elastic-licensed) | [ByteRover CLI](./byterover-cli) |
+| Procedural/working memory — versioned dependency-typed task graph on a Git-like SQL DB (Dolt), no vectors | [Beads](./beads) |
 | Conformance benchmark (the yardstick) | [StateBench](./statebench) |
 
 Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
@@ -337,6 +338,46 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   the human and the agent are both editors of the same context tree)
   and worth studying as one possible answer to "how does a *team* of
   developers share agent memory."
+
+### [beads](./beads)
+- **Repo:** https://github.com/gastownhall/beads — *Distributed graph
+  issue tracker for AI agents, powered by Dolt*
+- **Maintainer:** `gastownhall` org; Go module path
+  `github.com/steveyegge/beads` (Steve Yegge et al.); MIT. Ships as
+  `@beads/bd` (npm), `beads-mcp` (PyPI), `beads` (Homebrew).
+- **Why this is here:** The entry that names the missing axis. Every other
+  entry models *episodic / semantic* memory — recall over conversation or
+  facts. Beads models **procedural / working memory**: the agent's own
+  task graph, so a coding agent can survive context compaction, session
+  resets, and account rotations without losing the plot or redoing work.
+  And it makes the study's sharpest storage bet — **no vector store, no
+  embeddings, no semantic similarity anywhere.** Recall is SQL views +
+  graph traversal over a typed dependency graph (`blocks`, `parent-child`,
+  `supersedes`, `relates-to`, `discovered-from`, ~19 edge kinds) stored in
+  **[Dolt](https://github.com/dolthub/dolt)** — a Git-like, versioned,
+  MySQL-compatible database with cell-level merge and native branching.
+  **Hash-based IDs** (`bd-a1b2` = base36 of a SHA256 over
+  title+description+creator+timestamp+nonce, `internal/idgen/hash.go`) give
+  conflict-free writes across parallel agents and branches — no shared
+  auto-increment counter to collide on. The write path is mutate-the-row +
+  append to an immutable `events` audit trail; supersession is an explicit
+  `supersedes` graph edge (compare Neo / RetainDB). Eviction is real:
+  closed issues get **Claude-Haiku-summarized "memory decay"**
+  (`internal/compact/`) into Summary / Key Decisions / Resolution, with the
+  full original preserved in snapshot tables for recovery. A separate,
+  deliberately dumb memory surface — `bd remember` / `recall` / `memories`
+  / `forget` (`cmd/bd/memory.go`) — stores slugified key→value insights in
+  the config KV table and re-injects them every session via `bd prime`
+  (`cmd/bd/prime.go`) as a SessionStart hook. On disk, the Dolt DB under
+  `.beads/` is authoritative; `.beads/issues.jsonl` is a plain-JSON export
+  for viewing/interchange only — *not* the source of truth. Local-first and
+  git-optional (`BEADS_DIR` + `--stealth`), with peer-to-peer **federation**
+  carrying data-sovereignty tiers (the only GDPR-tier knob in the study).
+  The cleanest pairing is Beads vs Volt (both coding-agent, both
+  database-backed — and mind the trap: Volt's *eviction mode* is named
+  "Dolt" while Beads is *built on* Dolt the DB); the cleanest contrast is
+  Beads vs every vector-backed entry. Deep write-up:
+  [`context-v/profiles/Profile__Beads.md`](./context-v/profiles/Profile__Beads.md).
 
 ### [statebench](./statebench)
 - **Repo:** https://github.com/Parslee-ai/statebench — *Conformance test

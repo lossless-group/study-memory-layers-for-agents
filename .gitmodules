@@ -43,3 +43,6 @@
 [submodule "byterover-cli"]
 	path = byterover-cli
 	url = https://github.com/campfirein/byterover-cli.git
+[submodule "beads"]
+	path = beads
+	url = https://github.com/gastownhall/beads.git
