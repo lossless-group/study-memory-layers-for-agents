@@ -46,3 +46,6 @@
 [submodule "beads"]
 	path = beads
 	url = https://github.com/gastownhall/beads.git
+[submodule "understand-anything"]
+	path = understand-anything
+	url = https://github.com/Egonex-AI/Understand-Anything

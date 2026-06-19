@@ -48,6 +48,7 @@ When reading each entry below, the working checklist is:
 | Typed/scoped facts + deterministic supersession + outcome learning | [Neo](./neo) |
 | Immutable Postgres log + summary DAG | [Volt](./volt) |
 | Folder → in-process NetworkX KG + Leiden + MCP query surface | [Graphify](./graphify) |
+| Multi-agent LLM → one knowledge-graph.json, Zod-normalized; "graphs that teach" (grep + Astro dashboard, not a query server) | [Understand-Anything](./understand-anything) |
 | Multi-peer "theory of mind" — what A knows about B, derived async | [Honcho](./honcho) |
 | Context as a filesystem; L0/L1/L2 abstract tiers; unified memories + resources + skills | [OpenViking](./openviking) |
 | Typed memory taxonomy (world facts / experiences / mental models) + bank-based scoping | [Hindsight](./hindsight) |
@@ -212,6 +213,42 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   ships the graph as a single `graph.json` next to a static HTML viewer.
   A useful "do we even need a server?" data point in a study otherwise
   dominated by server-backed designs.
+
+### [understand-anything](./understand-anything)
+- **Repo:** https://github.com/Egonex-AI/Understand-Anything — *Turn any
+  codebase, knowledge base, or docs into an interactive knowledge graph you
+  can explore, search, and ask questions about*
+- **Maintainer:** Egonex-AI (`Egonex-AI` org; originally Lum1104 / Yuxiang
+  Lin, © Infinite Universe, Inc.); MIT; TypeScript plugin v2.8.1
+- **Why this is here:** The study's matched pair to **Graphify** — same
+  *codebase-as-memory* bet (model the static corpus, not conversation, as a
+  knowledge graph), same tree-sitter substrate, same MIT multi-platform-plugin
+  packaging — executing it **oppositely on three axes**, which is exactly what
+  makes the pairing worth reading. (1) **Extraction:** Graphify is
+  deterministic (tree-sitter emits canonical types); Understand-Anything runs a
+  **multi-agent LLM pipeline** (nine sub-agents — `project-scanner` →
+  `file-analyzer` → `architecture-analyzer` → `domain-analyzer` →
+  `article-analyzer` → `tour-builder` → `graph-reviewer` →
+  `assemble-reviewer`) and then **repairs the LLM's output** against a Zod
+  schema with explicit alias maps (`fn`/`method` → `function`, `extends` →
+  `inherits`, `conflicts_with` → `contradicts`) — the cleanest worked example
+  in the study of *how you trust a graph an LLM authored*
+  (`packages/core/src/schema.ts:18-78`). (2) **Recall:** Graphify ships an MCP
+  query server; Understand-Anything ships *no query API at all* — its eight
+  skills (`/understand`, `/understand-chat`, `/understand-diff`, …) instruct the
+  agent to **`grep` the single `.understand-anything/knowledge-graph.json`**,
+  and an Astro **dashboard** + dependency-ordered **guided tours** serve humans.
+  Its ethos is "**graphs that teach > graphs that impress**." (3) **Scope:** a
+  `kind: "codebase" | "knowledge"` switch plus five **knowledge** node types
+  (article / entity / topic / claim / source) and knowledge edges
+  (`cites` / `contradicts` / `builds_on`) point the same machinery at *prose and
+  argument* (Karpathy-style LLM wikis, papers) — the only entry in the study
+  that models a knowledge base as a first-class graph subject. The schema is
+  rich (21 node types, 35 edge types across 8 categories; `types.ts:2-19`) and
+  the 42 tree-sitter language configs reach well past code into infra and docs
+  (`terraform`, `kubernetes`, `dockerfile`, `openapi`, `markdown`). Deep
+  write-up:
+  [`context-v/profiles/Profile__Understand-Anything.md`](./context-v/profiles/Profile__Understand-Anything.md).
 
 ### [honcho](./honcho)
 - **Repo:** https://github.com/plastic-labs/honcho — *Build AI agents
