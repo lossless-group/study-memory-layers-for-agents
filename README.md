@@ -56,6 +56,7 @@ When reading each entry below, the working checklist is:
 | Universal RAG + memory layer, currently top of LongMemEval / LoCoMo / ConvoMem | [Supermemory](./supermemory) |
 | Coding-agent context tree (CLI + optional cloud sync; Elastic-licensed) | [ByteRover CLI](./byterover-cli) |
 | Procedural/working memory — versioned dependency-typed task graph on a Git-like SQL DB (Dolt), no vectors | [Beads](./beads) |
+| Local-first SQLite/FTS5 default with pluggable remote backends (Zep/Mem0/MemOS/OpenViking); durable local write-queue decouples agent turns from provider latency | [Paxm](./paxm) |
 | Conformance benchmark (the yardstick) | [StateBench](./statebench) |
 
 Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
@@ -415,6 +416,37 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   "Dolt" while Beads is *built on* Dolt the DB); the cleanest contrast is
   Beads vs every vector-backed entry. Deep write-up:
   [`context-v/profiles/Profile__Beads.md`](./context-v/profiles/Profile__Beads.md).
+
+### [paxm](./paxm)
+- **Repo:** https://github.com/pax-beehive/paxm — *Persistent, provider-neutral
+  memory for Codex, Claude Code, OpenCode, Pi, and MCP coding agents*
+- **Maintainer:** `pax-beehive` org; Apache-2.0
+- **Why this is here:** The routing/adapter bet, not a storage-architecture
+  bet. Default backend is local SQLite + FTS5/BM25 for turn-level memories —
+  zero account, API key, embeddings, or extra model calls to get started —
+  but it's explicitly a thin layer in front of swappable remote providers
+  (Zep, Mem0, MemOS, OpenViking, or a custom JSON-RPC adapter), with
+  multiple provider instances routable simultaneously via profiles. That
+  makes it the study's clearest example of "memory as a pluggable backend
+  behind one stable agent-facing API" rather than "memory as a bespoke
+  store." Write path is a durable local queue with background,
+  resumable delivery to the provider — hook acknowledgement only waits on
+  the local transaction, so a slow or down remote provider never blocks
+  the agent turn. Records carry origin (user/agent/session/turn) and scope
+  (personal/team) metadata that providers supporting attribution must
+  round-trip. Recall surface is three-way: CLI (`paxm recall --query`),
+  four MCP tools (`paxm_recall`, `paxm_remember`, `paxm_history`, +1), and
+  passive injection via lifecycle hooks under an 800ms budget. Integration
+  breadth is the other headline — native Claude Code plugin (5 hooks),
+  native Codex plugin, local OpenCode/Pi plugins, plus a stdio MCP server —
+  more agent-harness surface area than most other entries in this study
+  attempt. Early-stage (152★, 34 releases, 161 commits) with active
+  CI/CD including optional real-agent regression evals. Deep write-up:
+  [`context-v/profiles/Profile__Paxm.md`](./context-v/profiles/Profile__Paxm.md) —
+  covers the squared-reciprocal-rank cross-provider ranking calibrator
+  (`internal/memory/ranking.go`), the checksummed SQLite-WAL durable write
+  queue (`internal/capturequeue/queue.go`), and the exact-fingerprint (not
+  semantic) LTM admission policy.
 
 ### [statebench](./statebench)
 - **Repo:** https://github.com/Parslee-ai/statebench — *Conformance test

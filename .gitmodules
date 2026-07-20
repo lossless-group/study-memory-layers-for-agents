@@ -49,3 +49,6 @@
 [submodule "understand-anything"]
 	path = understand-anything
 	url = https://github.com/Egonex-AI/Understand-Anything
+[submodule "paxm"]
+	path = paxm
+	url = https://github.com/pax-beehive/paxm.git
