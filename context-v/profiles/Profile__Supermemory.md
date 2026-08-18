@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/supermemory
 profile_kind: hosted-platform + thin-clients + SDKs + connectors + MCP-server
 date_created: 2026-05-26
+site_uuid: 85801db5-f917-4e49-8f1a-c1c5edf9fbe5
+hex_code: wuyi0o
+date_authored_initial_draft: 2026-05-26
+date_authored_current_draft: 2026-05-26
+lede: >-
+  The most polished client surface in the study, wrapped around an engine that
+  is not in the repo — every SDK points at a hosted API.
+summary: >-
+  Profile of Supermemory as pinned in the memory-layers-for-agents study. Its
+  role here is as the verifiability case: the entry with the loudest benchmark
+  claims and the least inspectable engine. Covers what the OSS repo actually
+  ships (Next.js consumer app, Cloudflare Durable Object MCP server, seven SDKs
+  and framework adapters, the Zod validation schemas, a memory-graph
+  visualizer), the MemoryEntry schema with its version chain and forget
+  metadata, the two ingest endpoints, the profile() call as the distinctive
+  recall primitive, containerTag scoping and its unsafe default, the connector
+  discrepancy between the README and the validated provider enum, and an honest
+  reading of three mutually incommensurable "#1" claims. The recommended posture
+  is in the mental-model section: verify forgetting and supersession in your own
+  eval rather than on the README's word.
+publish: true
 ---
 
 # Supermemory — Profile

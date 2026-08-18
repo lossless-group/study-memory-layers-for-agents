@@ -9,6 +9,25 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/graphiti
 profile_kind: library + mcp-server + rest-server
 date_created: 2026-05-17
+site_uuid: 20656636-87a3-4098-898f-754410e26a8f
+hex_code: 8fu6wj
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  `expired_at` is when the engine retired a fact; `invalid_at` is when it
+  stopped being true in the world. Routinely different dates.
+summary: >-
+  Profile of Graphiti (Zep Software) as pinned in the memory-layers-for-agents
+  study. It is the study's only genuine graph — typed nodes, typed edges,
+  BFS-traversable, community-detectable — and the reference point whenever
+  temporal correctness comes up. Covers the four interchangeable Cypher-flavoured
+  backends (Neo4j / FalkorDB / Kuzu / Neptune), the five time fields on every
+  edge, the episode-as-first-class-node design that keeps provenance one hop
+  away, the six-stage add_episode pipeline, hybrid BM25 + cosine + BFS recall
+  with RRF/MMR/cross-encoder rerankers, label-propagation community detection,
+  and Pydantic entity types as the ontology surface. Note the benchmark posture:
+  the numbers live in the arXiv Zep paper, not in a re-runnable in-repo harness.
+publish: true
 ---
 
 # Graphiti — Profile

@@ -10,6 +10,28 @@ profile_path: studies/memory-layers-for-agents/understand-anything
 profile_kind: ai-coding-plugin (multi-agent) + knowledge-graph + astro-dashboard
 pinned_sha: 7f5a717694d3a94f19f523b375c777eb21548ff5
 date_created: 2026-06-19
+site_uuid: a511f50d-6b08-413b-ba1f-466cd90511f8
+hex_code: 5npjhb
+date_authored_initial_draft: 2026-06-19
+date_authored_current_draft: 2026-06-19
+lede: >-
+  When an LLM authors your graph, the schema layer stops being a validator and
+  becomes a repair shop — alias maps fold synonyms back.
+summary: >-
+  Profile of Understand-Anything (Egonex-AI) as pinned in the
+  memory-layers-for-agents study. It is the probabilistic half of the study's
+  codebase-as-memory pair with Graphify — same thesis, opposite execution on
+  extraction, recall, and scope. Covers the nine-agent LLM pipeline over a
+  tree-sitter skeleton spanning 42 language configs, the 21-node-type and
+  35-edge-type vocabulary including the knowledge family that models prose and
+  argument, the Zod schema plus alias-normalization layer, the four plain-JSON
+  files under .understand-anything with no database or server, fingerprint-based
+  incremental re-analysis with a post-commit hook, path sanitization to avoid
+  leaking home directories through the dashboard, and the eight skills that make
+  up the recall surface. The alias-map section is the most transferable idea in
+  the file; the kind-knowledge path is the one worth probing against the
+  Lossless corpus.
+publish: true
 ---
 
 # Understand-Anything — Profile

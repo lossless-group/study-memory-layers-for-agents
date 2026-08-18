@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/mempalace
 profile_kind: library + mcp-server + cli
 date_created: 2026-05-17
+site_uuid: 9aae1b02-1ea8-4795-9a4a-4527e8fe1f5e
+hex_code: lgvblv
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  The counter-bet: extract nothing. Raw 800-character chunks score 96.6% R@5
+  on LongMemEval at zero LLM calls.
+summary: >-
+  Profile of MemPalace as pinned in the memory-layers-for-agents study. It is
+  the direct structural opposite of Mem0 — same problem, same toolchain, nearly
+  inverted bet at the write step — and the pairing is the study's most
+  informative. Covers the Wing/Room/Drawer/Closet/Tunnel taxonomy and its
+  Zettelkasten and Method-of-Loci lineage, the ChromaDB drawers-plus-closets
+  layout with a SQLite temporal knowledge graph beside it, the append-only
+  idempotent write policy with deterministic SHA-256 IDs, hybrid vector + BM25
+  recall with the closets-as-signal-never-a-gate rule, the deliberate absence of
+  eviction, the MCP/CLI/library surfaces and Claude Code hooks, and an honest
+  reading of the benchmark table including its own caveats. The transferable
+  lesson is the closet-as-signal pattern: any summary layer over a corpus should
+  be a ranking hint, never a filter.
+publish: true
 ---
 
 # MemPalace — Profile

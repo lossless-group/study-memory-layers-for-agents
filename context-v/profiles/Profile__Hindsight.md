@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/hindsight
 profile_kind: full-stack (FastAPI server + Python/TS/Rust/Go SDKs + Rust CLI + Next.js control plane + Helm + Docker + embedded distribution)
 date_created: 2026-05-26
+site_uuid: e7c41ded-a09e-4fcc-9a7f-027d7b64ff44
+hex_code: 6d829z
+date_authored_initial_draft: 2026-05-26
+date_authored_current_draft: 2026-05-26
+lede: >-
+  `fact_type` is a database CHECK constraint: world facts and first-person
+  experiences travel through different extraction prompts.
+summary: >-
+  Profile of Hindsight (Vectorize.io) as pinned in the memory-layers-for-agents
+  study. It is the study's largest single repo by surface area and its clearest
+  example of a typed memory taxonomy. Covers the world/experience/observation
+  taxonomy plus the mental-models layer, the deliberate everything-in-one-
+  Postgres decision (pgvector + tsvector + JSONB + recursive CTEs), the
+  multi-stage retain pipeline, 4-way parallel recall fused by RRF with
+  cross-encoder reranking, the reflect tool hierarchy and its citation-enforcing
+  done schema, banks as the isolation primitive, and consolidation as the
+  eviction-and-supersession substitute. Note the benchmark posture: still
+  vendor-self-reported, but with the cleanest third-party reproduction trail in
+  the study.
+publish: true
 ---
 
 # Hindsight — Profile

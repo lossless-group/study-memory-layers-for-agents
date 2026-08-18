@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/paxm
 profile_kind: cli + mcp-server + multi-agent-plugin + durable-write-queue
 date_created: 2026-07-20
+site_uuid: 7daa2f65-be10-40e4-a932-e3abf998cd0a
+hex_code: vdfojd
+date_authored_initial_draft: 2026-07-20
+date_authored_current_draft: 2026-07-20
+lede: >-
+  Paxm is not a memory store — it is routing and durability in front of
+  seven-plus pluggable backends, and it does zero semantic dedup.
+summary: >-
+  Profile of Paxm (pax-beehive) as pinned in the memory-layers-for-agents study.
+  It is the study's clearest example of memory-as-plumbing rather than
+  memory-as-store, and has the widest agent-harness integration of any entry
+  (Claude Code, Codex, OpenCode, Pi, plus MCP). Covers the MemoryItem schema and
+  its Origin-versus-Scope split (attribution is not authorization), the
+  durable capture queue with its events/episodes/deliveries tables and
+  crash-recovery path, per-provider goroutine bulkheads, the ranking calibration
+  and its deterministic tie-breaking, exact-fingerprint LTM admission, the
+  tier-plus-expiry eviction story, and the passive/active recall split with its
+  first-turn-versus-later-turn asymmetry. Read docs/architecture.md upstream
+  before the code — this profile names it as the best architecture doc in the
+  study.
+publish: true
 ---
 
 # Paxm — Profile

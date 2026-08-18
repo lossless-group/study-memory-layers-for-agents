@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/beads
 profile_kind: CLI + embedded/server SQL database + MCP server
 date_created: 2026-05-28
+site_uuid: 0735558b-ddcc-4702-bcdb-7b3a5e1c843f
+hex_code: vmwh5j
+date_authored_initial_draft: 2026-05-28
+date_authored_current_draft: 2026-05-28
+lede: >-
+  Not one embedding anywhere in the recall path — retrieval is a SQL view and
+  a graph walk over the agent's own work graph.
+summary: >-
+  Profile of Beads (gastownhall/steveyegge) as pinned in the
+  memory-layers-for-agents study. It is the study's procedural/working-memory
+  data point against an otherwise episodic-and-semantic field, and the entry
+  that forces the question of whether "agent memory" is one thing at all.
+  Covers the Dolt storage topology (embedded vs server), the ~50-column issues
+  schema, the ~19 typed dependency edge kinds, hash-based ID generation, the
+  Claude-Haiku "memory decay" compaction with reversible snapshots, the literal
+  bd remember/recall/prime key-value surface, JSONL-as-export-not-truth, and
+  peer federation with data-sovereignty tiers. Use it to orient before reading
+  Beads source (every claim cites a pinned path), and as the comparison anchor
+  whenever a system's recall path is being judged on whether it needs vectors.
+publish: true
 ---
 
 # Beads — Profile

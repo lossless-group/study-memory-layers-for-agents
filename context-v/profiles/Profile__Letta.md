@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/letta
 profile_kind: platform (server + agents) + library + hosted-cloud
 date_created: 2026-05-17
+site_uuid: 679199ab-f28a-474a-b7cb-bb45ffa4b54e
+hex_code: 53u8t2
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  The one entry where the agent itself — not an extraction pipeline, not a
+  background summarizer — is the memory manager.
+summary: >-
+  Profile of Letta (letta-ai, formerly MemGPT) as pinned in the
+  memory-layers-for-agents study. It is the study's most lineage-heavy entry and
+  its closest structural relative to the context-vigilance discipline. Covers
+  the two-tier memory model (agent-editable core blocks rendered into the system
+  prompt, pgvector-backed archival passages), the core_memory_append and
+  core_memory_replace tools that are the MemGPT signature, block sharing via the
+  blocks_agents junction table, the FastAPI + Postgres + pgvector platform with
+  its OpenAI-compatible endpoint and built-in OpenTelemetry, the agent-profile
+  system prompts, and the git-backed memory mode. The comparison table against
+  context-vigilance is the section to read if an agent is ever going to write
+  into a context-v directory directly.
+publish: true
 ---
 
 # Letta — Profile

@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/graphify
 profile_kind: cli + library + mcp-server + ai-coding-skill
 date_created: 2026-05-21
+site_uuid: 85c10be5-eaf3-4454-9c38-91099c35104c
+hex_code: nhepv2
+date_authored_initial_draft: 2026-05-21
+date_authored_current_draft: 2026-05-21
+lede: >-
+  The whole memory layer is one in-process NetworkX graph and a `graph.json`
+  you can copy around — no database anywhere.
+summary: >-
+  Profile of Graphify (safishamsi) as pinned in the memory-layers-for-agents
+  study. It is one half of the study's codebase-as-memory pair with
+  Understand-Anything, and the deterministic half: tree-sitter extraction across
+  ~30 languages, no LLM in the write path. Covers the seven-stage pipeline
+  (detect/extract/build/cluster/analyze/report/export), the strict nodes-and-
+  edges extraction schema, Leiden clustering with a Louvain fallback and its
+  hand-tuned community heuristics, the god-nodes and surprising-connections
+  analysis, the MCP tool surface with its hand-tuned match-bonus constants,
+  watch-mode staleness signalling, and the security chokepoint in security.py.
+  Read it alongside Profile__Graphiti (same primitive, opposite premise about
+  what an agent needs to remember) and Profile__Understand-Anything
+  (deterministic vs LLM-authored graph construction).
+publish: true
 ---
 
 # Graphify — Profile

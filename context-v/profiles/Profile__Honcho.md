@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/honcho
 profile_kind: library + server + hosted-platform + MCP worker
 date_created: 2026-05-26
+site_uuid: fe8ff9fd-8a94-4a50-9595-b75e118d6ff1
+hex_code: nvfrxl
+date_authored_initial_draft: 2026-05-26
+date_authored_current_draft: 2026-05-26
+lede: >-
+  Collections are unique on (observer, observed, workspace) — Honcho indexes
+  memory by relationship rather than by user.
+summary: >-
+  Profile of Honcho (Plastic Labs) as pinned in the memory-layers-for-agents
+  study. It is the only entry that models theory of mind in the schema, and the
+  right reference whenever the memory question involves multiple participants
+  reasoning about each other. Covers the peer paradigm, the async write path
+  (immediate enqueue, then a minimal single-LLM-call deriver worker, then a
+  scheduled Dreamer running DeductionSpecialist and InductionSpecialist with
+  surprisal-based prioritization), the four DocumentLevel values and the
+  source_ids reasoning tree, hybrid pgvector + Postgres FTS recall fused by RRF,
+  the tool-using Dialectic agent with its five cost tiers, and peer-presence
+  filtering that only returns messages a peer was actually present for. Note two
+  adoption constraints: no write-then-read consistency, and AGPL-3.0.
+publish: true
 ---
 
 # Honcho — Profile

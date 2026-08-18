@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/mem0
 profile_kind: library + server + hosted-platform
 date_created: 2026-05-17
+site_uuid: 23d5b3f3-c3f2-4390-8a81-a48eb6f100ca
+hex_code: qt8j06
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  Despite the graph-memory marketing, the graph is an array of linked memory
+  IDs hanging off spaCy-extracted entities.
+summary: >-
+  Profile of Mem0 (mem0ai) as pinned in the memory-layers-for-agents study. It
+  is the field's default general-purpose memory layer and the baseline every
+  other entry positions against. Covers the vector + entity-store + SQLite
+  triad, the memory and entity payload schemas, the v3 single-pass additive
+  extraction that replaced the older ADD-then-UPDATE loop, additive hybrid
+  scoring across semantic + BM25 + entity boost, the mandatory
+  user/agent/run scope axis, the absence of any eviction policy in OSS, and the
+  three deployment modes. Read the write-policy and eviction sections together —
+  they are where the benchmark wins and the structural gaps come from the same
+  design choice, and they set up Profile__StateBench, Profile__Neo, and
+  Profile__RetainDB as the counterarguments.
+publish: true
 ---
 
 # Mem0 — Profile

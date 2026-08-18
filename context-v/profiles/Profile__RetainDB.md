@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/retaindb
 profile_kind: local-runtime + dual-licensed-server + hosted-cloud
 date_created: 2026-05-26
+site_uuid: b4d07a39-ed4f-4755-a346-503789666587
+hex_code: 6r9bh1
+date_authored_initial_draft: 2026-05-26
+date_authored_current_draft: 2026-05-26
+lede: >-
+  Supersession as an actual indexed column — `validUntil`, `supersededBy` —
+  rather than something the ranker is hoped to handle.
+summary: >-
+  Profile of RetainDB as pinned in the memory-layers-for-agents study. It is the
+  study's second bi-temporal system (validity on records, where Graphiti puts it
+  on edges) and its clearest worked example of typed memory driving decay
+  policy. Covers the Prisma schema and its bi-temporal columns, the 13 memory
+  types and 5 relation types with the two that trigger invalidation, the
+  five-step supersession-aware write path and its stamped policy version, the
+  weighted RRF hybrid retrieval with cross-encoder-then-LLM reranking, the
+  no-Postgres single-process local runtime, three eviction mechanisms, and the
+  scope column with its PROJECT-level option. Flag noted in the profile: the
+  LICENSE-BSL file the README references is absent from the pinned snapshot, so
+  verify server license terms upstream before any commercial planning.
+publish: true
 ---
 
 # RetainDB — Profile

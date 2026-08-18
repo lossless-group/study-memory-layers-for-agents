@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/openviking
 profile_kind: Rust core + Python service + multi-language CLI + HTTP server + WebDAV + Helm chart
 date_created: 2026-05-26
+site_uuid: ba2be26e-a6d5-46c7-83fc-7fbf80ce117a
+hex_code: xf3nv5
+date_authored_initial_draft: 2026-05-26
+date_authored_current_draft: 2026-05-26
+lede: >-
+  Memories, resources, and skills collapse into one `viking://` tree, and
+  retrieval is a recursive directory walk, not a vector query.
+summary: >-
+  Profile of OpenViking (Volcengine / ByteDance) as pinned in the
+  memory-layers-for-agents study. It is the study's strongest context-as-
+  filesystem bet and its most production-shaped deployment story. Covers the
+  Rust RAGFS core with the Python service layer above it, the L0/L1/L2 contract
+  and the vector index as a derived secondary index, context_type derived from
+  the URI prefix, the IntentAnalyzer plus HierarchicalRetriever priority-queue
+  descent, the async bottom-up semantic queue, session commit with 8-category
+  memory extraction and its memory_diff.json audit log, calendar path variables,
+  the account/user/agent identity tree, and the path-lock plus redo-log
+  transaction model. Read the retrieval and transaction sections first — they
+  are the two places the design is genuinely ahead of the rest of the field.
+  Note the license split: AGPL-3.0 on the server.
+publish: true
 ---
 
 # OpenViking — Profile

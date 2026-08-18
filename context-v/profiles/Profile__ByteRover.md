@@ -9,6 +9,26 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/byterover-cli
 profile_kind: CLI + REPL + dashboard + hosted-platform (source-available)
 date_created: 2026-05-26
+site_uuid: 1a91d385-26bb-4f3b-b6b0-7b9a33e244fb
+hex_code: 8mefyd
+date_authored_initial_draft: 2026-05-26
+date_authored_current_draft: 2026-05-26
+lede: >-
+  The memory store is a directory of Markdown you can cat, grep, and diff,
+  with its own git history. Recall is BM25, not embeddings.
+summary: >-
+  Profile of ByteRover CLI as pinned in the memory-layers-for-agents study. It
+  is the study's "developer is a first-class editor of the memory" entry — a
+  CLI/REPL/dashboard trinity routed through one local daemon rather than a
+  library an agent depends on. Covers the .brv/context-tree layout, the
+  hierarchical _index.md summary nodes with their children-hash staleness key,
+  the three-lane token-budget manifest, the runtime-signals sidecar kept out of
+  version control on purpose, the four-phase curate write path with its HITL
+  review gate, the "dream" prune/synthesize/consolidate eviction cycle, and the
+  self-reported LoCoMo/LongMemEval numbers. Read it before any licensing
+  decision that involves ByteRover — the Elastic-2.0 analysis is the section
+  most likely to change a plan.
+publish: true
 ---
 
 # ByteRover CLI — Profile

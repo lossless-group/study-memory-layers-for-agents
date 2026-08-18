@@ -2,13 +2,33 @@
 name: Delta-Mem Profile
 slug: delta-mem
 upstream: https://github.com/declare-lab/delta-Mem
-package: deltamem (HF adapter: declare-lab/delta-mem_qwen3_4b-instruct)
+package: "deltamem (HF adapter: declare-lab/delta-mem_qwen3_4b-instruct)"
 license: CC-BY-4.0
 maintainer: declare-lab (SUTD) — Jingdi Lei, Di Zhang, Junxian Li, Weida Wang, Kaixuan Fan, Xiang Liu, Qihan Liu, Xiaoteng Ma, Baian Chen, Soujanya Poria
 study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/delta-mem
 profile_kind: research-artifact + transformer-adapter + training-pipeline
 date_created: 2026-05-17
+site_uuid: fb3a910b-bcc6-49ed-ac48-5593b8f99466
+hex_code: vqmifq
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  Memory as a dense rank-8 state matrix inside each attention head, updated
+  token by token — the model never looks anything up.
+summary: >-
+  Profile of Delta-Mem (declare-lab / SUTD) as pinned in the
+  memory-layers-for-agents study. It is the study's only architectural — rather
+  than systems — entry, and exists to make the design space legible: it is the
+  alternative the retrieval-based entries are all implicitly betting against.
+  Covers the DeltaMemAttention wrapper and its six added projections, the
+  per-head state matrix and the delta-rule update, the three write granularities
+  (TSW/SSW/MSW), the Triton affine-scan kernel, the frozen-backbone SFT training
+  pipeline, the LoCoMo/HotpotQA/IFEval/GPQA evaluation suite, and the released
+  Qwen3-4B-Instruct adapter. Read it when the question on the table is whether a
+  given memory problem is a retrieval problem or a forward-pass problem; do not
+  read it looking for something deployable against a closed API model.
+publish: true
 ---
 
 # Delta-Mem — Profile

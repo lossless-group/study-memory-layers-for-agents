@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/statebench
 profile_kind: benchmark + harness + reference-implementations
 date_created: 2026-05-17
+site_uuid: 53f5c99b-83b9-45cf-be49-848708ae967a
+hex_code: sk0h9w
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  The trade nobody advertises: more context raises decision accuracy and
+  superseded-fact resurrection together.
+summary: >-
+  Profile of StateBench (Parslee) as pinned in the memory-layers-for-agents
+  study. It is the independent harness that lets the study stop taking every
+  other entry's self-reported numbers on faith. Covers the six failure modes
+  (resurrection, hallucination, scope leak, stale reasoning, authority
+  violation, temporal decay failure), the four metric families and their hybrid
+  deterministic-plus-LLM-judge scoring with its deliberate asymmetry, the
+  1,410-timeline dataset with authority levels and canary contamination items,
+  the three-method MemoryStrategy plug-in interface, the ten reference baselines
+  that between them map the whole design space, and the multi-seed signed
+  submission protocol. The failure-mode taxonomy is worth using on its own,
+  without ever running the benchmark; the submission hygiene is the template to
+  copy for any internal eval.
+publish: true
 ---
 
 # StateBench — Profile

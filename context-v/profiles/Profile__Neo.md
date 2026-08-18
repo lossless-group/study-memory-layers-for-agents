@@ -9,6 +9,27 @@ study: studies/memory-layers-for-agents
 profile_path: studies/memory-layers-for-agents/neo
 profile_kind: cli + library + claude-code-plugin + codex-plugin
 date_created: 2026-05-17
+site_uuid: 11b30fa0-5fca-4346-ad43-7b5e576dadbb
+hex_code: 2aytzx
+date_authored_initial_draft: 2026-05-17
+date_authored_current_draft: 2026-05-17
+lede: >-
+  Familiar high-confidence queries get dialled down to low reasoning effort —
+  memory shows up as a smaller bill, not better accuracy.
+summary: >-
+  Profile of Neo (Parslee AI) as pinned in the memory-layers-for-agents study.
+  It is the study's most file-readable storage and its most thoughtful eviction
+  story, and it sits closest to the context-vigilance discipline of any entry
+  besides git-mode Letta. Covers the seven typed fact kinds, the four
+  git-auto-detected scopes with hard caps, deterministic supersession at cosine
+  0.85 with a needs-review cascade onto dependents, outcome-driven confidence
+  from architectural quality metrics, the layered ContextResult that deliberately
+  surfaces invalidated facts rather than hiding them, four coordinated eviction
+  mechanisms, the on-disk JSON v2.0 format, the MapCoder inner loop, and the
+  Construct pattern library kept separate from learned facts. Read the
+  invalidated-layer and supersession sections when the requirement is
+  state-correctness over time.
+publish: true
 ---
 
 # Neo — Profile
