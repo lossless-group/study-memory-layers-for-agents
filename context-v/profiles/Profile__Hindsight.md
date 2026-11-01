@@ -29,6 +29,11 @@ summary: >-
   vendor-self-reported, but with the cleanest third-party reproduction trail in
   the study.
 publish: true
+title: Hindsight — Profile
+date_modified: 2026-08-18
+authors:
+  - Michael Staton
+status: Reference
 type: Profiles
 ---
 

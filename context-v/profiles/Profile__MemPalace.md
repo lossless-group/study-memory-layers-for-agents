@@ -30,6 +30,11 @@ summary: >-
   lesson is the closet-as-signal pattern: any summary layer over a corpus should
   be a ranking hint, never a filter.
 publish: true
+title: MemPalace — Profile
+date_modified: 2026-08-18
+authors:
+  - Michael Staton
+status: Reference
 type: Profiles
 ---
 

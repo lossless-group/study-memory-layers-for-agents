@@ -32,6 +32,11 @@ summary: >-
   the file; the kind-knowledge path is the one worth probing against the
   Lossless corpus.
 publish: true
+title: Understand-Anything — Profile
+date_modified: 2026-08-18
+authors:
+  - Michael Staton
+status: Reference
 type: Profiles
 ---
 

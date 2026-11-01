@@ -29,6 +29,11 @@ summary: >-
   given memory problem is a retrieval problem or a forward-pass problem; do not
   read it looking for something deployable against a closed API model.
 publish: true
+title: Delta-Mem — Profile
+date_modified: 2026-08-18
+authors:
+  - Michael Staton
+status: Reference
 type: Profiles
 ---
 

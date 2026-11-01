@@ -30,6 +30,11 @@ summary: >-
   are the two places the design is genuinely ahead of the rest of the field.
   Note the license split: AGPL-3.0 on the server.
 publish: true
+title: OpenViking — Profile
+date_modified: 2026-08-18
+authors:
+  - Michael Staton
+status: Reference
 type: Profiles
 ---
 
