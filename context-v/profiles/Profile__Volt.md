@@ -30,6 +30,7 @@ summary: >-
   file is the threshold-plus-escalation pattern: parameterize the control loop
   with explicit numbers instead of letting the model decide.
 publish: true
+type: Profiles
 ---
 
 # Volt — Profile

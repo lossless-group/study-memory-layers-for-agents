@@ -30,6 +30,7 @@ summary: >-
   without ever running the benchmark; the submission hygiene is the template to
   copy for any internal eval.
 publish: true
+type: Profiles
 ---
 
 # StateBench — Profile

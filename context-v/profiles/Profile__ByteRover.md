@@ -29,6 +29,7 @@ summary: >-
   decision that involves ByteRover — the Elastic-2.0 analysis is the section
   most likely to change a plan.
 publish: true
+type: Profiles
 ---
 
 # ByteRover CLI — Profile

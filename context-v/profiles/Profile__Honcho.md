@@ -29,6 +29,7 @@ summary: >-
   filtering that only returns messages a peer was actually present for. Note two
   adoption constraints: no write-then-read consistency, and AGPL-3.0.
 publish: true
+type: Profiles
 ---
 
 # Honcho — Profile

@@ -29,6 +29,7 @@ summary: >-
   design choice, and they set up Profile__StateBench, Profile__Neo, and
   Profile__RetainDB as the counterarguments.
 publish: true
+type: Profiles
 ---
 
 # Mem0 — Profile

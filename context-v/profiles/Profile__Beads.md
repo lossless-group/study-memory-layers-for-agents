@@ -29,6 +29,7 @@ summary: >-
   Beads source (every claim cites a pinned path), and as the comparison anchor
   whenever a system's recall path is being judged on whether it needs vectors.
 publish: true
+type: Profiles
 ---
 
 # Beads — Profile

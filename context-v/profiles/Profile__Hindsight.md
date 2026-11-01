@@ -29,6 +29,7 @@ summary: >-
   vendor-self-reported, but with the cleanest third-party reproduction trail in
   the study.
 publish: true
+type: Profiles
 ---
 
 # Hindsight — Profile

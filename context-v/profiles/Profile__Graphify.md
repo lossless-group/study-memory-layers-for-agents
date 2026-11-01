@@ -30,6 +30,7 @@ summary: >-
   what an agent needs to remember) and Profile__Understand-Anything
   (deterministic vs LLM-authored graph construction).
 publish: true
+type: Profiles
 ---
 
 # Graphify — Profile

@@ -30,6 +30,7 @@ summary: >-
   are the two places the design is genuinely ahead of the rest of the field.
   Note the license split: AGPL-3.0 on the server.
 publish: true
+type: Profiles
 ---
 
 # OpenViking — Profile

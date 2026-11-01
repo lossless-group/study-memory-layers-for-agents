@@ -30,6 +30,7 @@ summary: >-
   invalidated-layer and supersession sections when the requirement is
   state-correctness over time.
 publish: true
+type: Profiles
 ---
 
 # Neo — Profile

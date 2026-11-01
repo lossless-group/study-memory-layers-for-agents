@@ -30,6 +30,7 @@ summary: >-
   is in the mental-model section: verify forgetting and supersession in your own
   eval rather than on the README's word.
 publish: true
+type: Profiles
 ---
 
 # Supermemory — Profile

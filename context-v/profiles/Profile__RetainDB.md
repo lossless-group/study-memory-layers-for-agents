@@ -29,6 +29,7 @@ summary: >-
   LICENSE-BSL file the README references is absent from the pinned snapshot, so
   verify server license terms upstream before any commercial planning.
 publish: true
+type: Profiles
 ---
 
 # RetainDB — Profile

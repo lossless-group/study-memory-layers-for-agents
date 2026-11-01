@@ -30,6 +30,7 @@ summary: >-
   before the code — this profile names it as the best architecture doc in the
   study.
 publish: true
+type: Profiles
 ---
 
 # Paxm — Profile

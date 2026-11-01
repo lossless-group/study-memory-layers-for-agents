@@ -32,6 +32,7 @@ summary: >-
   the file; the kind-knowledge path is the one worth probing against the
   Lossless corpus.
 publish: true
+type: Profiles
 ---
 
 # Understand-Anything — Profile

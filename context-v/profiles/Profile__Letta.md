@@ -29,6 +29,7 @@ summary: >-
   context-vigilance is the section to read if an agent is ever going to write
   into a context-v directory directly.
 publish: true
+type: Profiles
 ---
 
 # Letta — Profile

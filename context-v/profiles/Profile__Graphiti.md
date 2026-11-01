@@ -28,6 +28,7 @@ summary: >-
   and Pydantic entity types as the ontology surface. Note the benchmark posture:
   the numbers live in the arXiv Zep paper, not in a re-runnable in-repo harness.
 publish: true
+type: Profiles
 ---
 
 # Graphiti — Profile
