@@ -12,7 +12,7 @@ date_created: 2026-05-28
 site_uuid: 0735558b-ddcc-4702-bcdb-7b3a5e1c843f
 hex_code: vmwh5j
 date_authored_initial_draft: 2026-05-28
-date_authored_current_draft: 2026-05-28
+date_authored_current_draft: 2026-11-23
 lede: >-
   Not one embedding anywhere in the recall path — retrieval is a SQL view and
   a graph walk over the agent's own work graph.
@@ -30,7 +30,7 @@ summary: >-
   whenever a system's recall path is being judged on whether it needs vectors.
 publish: true
 title: Beads — Profile
-date_modified: 2026-08-18
+date_modified: 2026-11-23
 authors:
   - Michael Staton
 status: Reference
@@ -49,9 +49,9 @@ There is **no vector store, no embeddings, no semantic similarity anywhere in th
 
 Three load-bearing design moves:
 
-1. **Hash-based IDs** (`bd-a1b2`) — SHA256 of `title|description|creator|timestamp|nonce` → base36, 3–8 chars (`internal/idgen/hash.go:55-85`). Zero merge collisions across parallel agents and git branches, because there is no shared auto-increment counter.
+1. **Hash-based IDs** (`bd-a1b2`) — SHA256 of `title|description|creator|timestamp|nonce` → base36, 3–8 chars (`internal/idgen/hash.go:55`, `GenerateHashID`). Zero merge collisions across parallel agents and git branches, because there is no shared auto-increment counter.
 2. **Dolt as the substrate** — cell-level merge, native branching, commit history on every write, and built-in peer sync (`bd dolt push`/`bd dolt pull` against `refs/dolt/data`). The issue graph is itself a versioned database you can branch and merge like code.
-3. **AI memory-decay compaction** — closed issues are summarized by **Claude Haiku** (`internal/compact/haiku.go`) into Summary / Key Decisions / Resolution, with the full original preserved in snapshot tables for recovery.
+3. **AI memory-decay compaction** — closed issues are summarized by **Claude Haiku** (`internal/compact/haiku.go`; a MiniMax key can stand in since 1.3) into Summary / Key Decisions / Resolution, with the full original preserved in snapshot tables for recovery.
 
 A separate, literal "memory" surface — `bd remember` / `recall` / `memories` / `forget` (`cmd/bd/memory.go`) — stores slugified key→value insights in the config KV table and re-injects them into every session via `bd prime` (`cmd/bd/prime.go`). This is the closest thing in Beads to "agent memory" in the sense the rest of the study means it, and it is deliberately dumb: substring search, no embedding, no extraction.
 
@@ -67,14 +67,14 @@ That makes Beads the study's clearest example of **procedural / task memory** as
 
 ## Storage topology — Dolt, two modes, no vector anything
 
-The whole memory layer is a Dolt database. Dolt is MySQL-wire-compatible but Git-shaped: tables have commit history, branches, and three-way cell-level merge. Two deployment modes (`README.md:107-151`):
+The whole memory layer is a Dolt database. Dolt is MySQL-wire-compatible but Git-shaped: tables have commit history, branches, and three-way cell-level merge. Two deployment modes (`README.md:160-178`, detail in `docs/architecture/dolt.md`):
 
 | Mode | Engine | Data dir | Writers | Code |
 |---|---|---|---|---|
 | **Embedded** (default, `bd init`) | Dolt in-process | `.beads/embeddeddolt/` | Single (file-lock enforced) | `internal/storage/embeddeddolt/` |
 | **Server** (`bd init --server`) | External `dolt sql-server` (TCP `:3307` or Unix socket) | `.beads/dolt/` | Multiple concurrent | `internal/storage/dolt/`, `internal/doltserver/` |
 
-There is no second backend. A grep for `sqlite` in `internal/storage/` returns nothing tracked — `BENCHMARKS.md`'s references to `SQLiteStorage` are stale naming from an earlier engine; the live storage tree is `internal/storage/dolt` + `internal/storage/embeddeddolt`, both Dolt. `FEDERATION-SETUP.md` confirms it explicitly: *"Federation requires the Dolt storage backend (the only supported backend)."*
+There is no second database engine. At the 2026-11-23 pin, the only SQLite code left is the legacy-import reader (`internal/migration/legacysqlite/`, `cmd/bd/legacy_sqlite_reader.go`); the live storage trees are `internal/storage/dolt` + `internal/storage/embeddeddolt`, both Dolt. Between pins the project briefly merged direct PostgreSQL and MySQL adapters and rolled them back before a tagged release (CHANGELOG, "Storage backend scope simplified", bd-sadcd). Two things did change the topology: an experimental **HTTP backend** (`bd connect <url>`) lets a workspace use a remote `bd serve` instead of a local Dolt database (`README.md:215-260`), and an experimental public **out-of-tree backend contract** (`backend/`, with `backend/conformance`) lets a third party register its own store. `FEDERATION-SETUP.md` still says *"Federation requires the Dolt storage backend (the only supported backend)."*
 
 This is the **single sharpest contrast in the study**: where Mem0, MemPalace, Supermemory, Hindsight, and RetainDB all build on embeddings + vector search, Beads has none. Recall correctness here is a SQL-query-and-graph-traversal problem, not a nearest-neighbor problem.
 
@@ -82,7 +82,7 @@ This is the **single sharpest contrast in the study**: where Mem0, MemPalace, Su
 
 ## Schema of a memory — the `issues` table is ~50 columns wide
 
-The canonical record is a row in `issues` (`internal/storage/schema/migrations/0001_create_issues.up.sql`), modeled in Go as `types.Issue` (`internal/types/types.go:16-105`). The Go struct is the cleanest read; the column groups:
+The canonical record is a row in `issues` (`internal/storage/schema/migrations/0001_create_issues.up.sql`), modeled in Go as `types.Issue` (`internal/types/types.go:20-223` at the 2026-11-23 pin). The Go struct is the cleanest read; the column groups:
 
 - **Identity:** `id` (hash ID, PK), `content_hash` (SHA256 of canonical content, internal-only `json:"-"`).
 - **Content:** `title`, `description`, `design`, `acceptance_criteria`, `notes`, `spec_id` — five structured prose fields, not one blob. Compaction targets exactly these (see below).
@@ -97,13 +97,13 @@ The canonical record is a row in `issues` (`internal/storage/schema/migrations/0
 
 ### Status and type taxonomies are enumerated, not free-form
 
-`Status` (`types.go:327-333`): `open`, `in_progress`, `blocked`, `deferred`, `closed`, `pinned`, `hooked`. Custom statuses are allowed and carry a `StatusCategory` (`active` / `wip` / `done` / `frozen`) so views and `bd ready` know how to treat them (`types.go:374-402`).
+`Status` (`types.go:608-622`): `open`, `in_progress`, `blocked`, `deferred`, `closed`, `pinned`, `hooked`. Custom statuses are allowed and carry a `StatusCategory` (`active` / `wip` / `done` / `frozen`) so views and `bd ready` know how to treat them (`types.go:660-670`).
 
-`IssueType` (`types.go:518-546`): `bug`, `feature`, `task`, `epic`, `chore`, `decision`, `message`, `molecule`, `gate`, `spike`, `story`, `milestone`, plus custom types. Notable that **`decision` is a first-class issue type** — closer to a knowledge artifact than a work item.
+`IssueType` (`types.go:804-827`): `bug`, `feature`, `task`, `epic`, `chore`, `decision`, `message`, `molecule`, `gate`, `spike`, `story`, `milestone`, plus custom types. Notable that **`decision` is a first-class issue type** — closer to a knowledge artifact than a work item.
 
 ### The dependency graph is a rich typed edge set
 
-`dependencies` (`0002_create_dependencies.up.sql`) is the graph. Edge `type` is one of ~19 well-known `DependencyType` values (`types.go:776-812`), grouped by what they do:
+`dependencies` (`0002_create_dependencies.up.sql`) is the graph. Edge `type` is one of ~19 well-known `DependencyType` values (`types.go:1468-1516`), grouped by what they do:
 
 - **Workflow (affect ready-work calculation):** `blocks`, `parent-child`, `conditional-blocks` (B runs only if A fails), `waits-for` (fan-out gate).
 - **Association:** `related`, `discovered-from`.
@@ -115,30 +115,30 @@ So Beads *is* a typed knowledge graph — just one whose nodes are work items an
 
 ### Supporting tables
 
-- **`events`** (`0005`, UUID PK) — immutable audit trail: `event_type`, `actor`, `old_value`, `new_value`, `comment`, `created_at`. This is the append-only history layer; the `issues` row is the mutable current state.
+- **`events`** (`0005`, UUID PK) — immutable audit trail: `event_type`, `actor`, `old_value`, `new_value`, `comment`, `created_at`. This is the append-only history layer; the `issues` row is the mutable current state. Since migration `0062_events_dolt_ignore` the table is dolt-ignored: rows stay durable in the working set but no longer mint Dolt history and no longer replicate on push/pull.
 - **`comments`**, **`labels`** — standard issue-tracker satellites.
 - **`config`** / **`metadata`** — KV stores; `config` is where `bd remember` lives (key `kv.memory.<slug>`).
 - **`issue_snapshots`** (`0009`) + **`compaction_snapshots`** (`0010`) — pre-compaction originals (full content + archived events) so memory decay is reversible.
 - **`interactions`** (`0014`) — an **LLM-call audit log**: `kind`, `actor`, `issue_id`, `model`, `prompt`, `response`, `error`, `tool_name`, `exit_code`, `parent_id`. Structurally similar to the Lossless `claude-code-tool-traces` collection — agent telemetry as a queryable table.
 - **`federation_peers`** (`0015`) — peer name, remote URL, encrypted credentials, and a `sovereignty` tier (see operational story).
-- **`wisps`** (`0020`) — a *parallel, dolt-ignored* copy of the `issues` schema for **ephemeral local beads** (messages, transient agent state). Not synced via git; subject to TTL-based compaction by `wisp_type`. The `no_history` flag (`types.go:80`, migration `0023`) keeps a wisp out of GC.
+- **`wisps`** (`0020`) — a *parallel, dolt-ignored* copy of the `issues` schema for **ephemeral local beads** (messages, transient agent state). Not synced via git; subject to TTL-based compaction by `wisp_type`. The `no_history` flag (`types.go:174`, migration `0023`) keeps a wisp out of GC.
 - **Views** `ready_issues` (`0017`) and `blocked_issues` (`0018`) — the ready/blocked computation is a SQL view, not application code, which is why `bd ready` is fast and consistent.
 
 Migration `0037_uuid_primary_keys.up.sql` is worth reading on its own: it converts the few remaining `BIGINT AUTO_INCREMENT` PKs to UUID, with the rationale stated in the file header — *"independent AUTO_INCREMENT counters across federated clones produce conflicting IDs on push/pull."* The same conflict-avoidance instinct that produced hash IDs for issues.
 
 ## ID generation — hash-based, hierarchical, conflict-free
 
-`internal/idgen/hash.go:55-85`: `GenerateHashID` builds `title|description|creator|timestamp.UnixNano()|nonce`, SHA256s it, and base36-encodes the first N bytes to a 3–8 char suffix → `bd-a1b2`. The `nonce` parameter handles the rare hash collision. Base36 (0-9a-z) over hex for density (`hash.go:53`).
+`internal/idgen/hash.go:55` (`GenerateHashID`) builds `title|description|creator|timestamp.UnixNano()|nonce`, SHA256s it, and base36-encodes the first N bytes to a 3–8 char suffix → `bd-a1b2`. The `nonce` parameter handles the rare hash collision. Base36 (0-9a-z) over hex for density (`hash.go:11-12`).
 
-Hierarchy is in the ID string itself (`README.md:71-78`): `bd-a3f8` (epic) → `bd-a3f8.1` (task) → `bd-a3f8.1.1` (subtask). `internal/storage` reserves child counters per parent (`child_counter_reservation.go`, migration `0008`).
+Hierarchy is in the ID string itself (`README.md:86-88`): `bd-a3f8` (epic) → `bd-a3f8.1` (task) → `bd-a3f8.1.1` (subtask). `internal/storage` reserves child counters per parent (`child_counter_reservation.go`, migration `0008`).
 
-The payoff (`README.md:54`): two agents on two branches both create issues, both push, and there is **no ID collision to merge** — because IDs are content-hashed, not sequence-allocated. This is the multi-agent-write story the conversation-memory entries don't have to solve.
+The payoff (`README.md:64`): two agents on two branches both create issues, both push, and there is **no ID collision to merge** — because IDs are content-hashed, not sequence-allocated. This is the multi-agent-write story the conversation-memory entries don't have to solve.
 
 ## Write policy — mutate-with-audit, atomic claims, Dolt-versioned
 
-Writes mutate the `issues` row and append to `events`. `bd update <id> --claim` is **atomic** (sets `assignee` + `status=in_progress` in one operation, `README.md:65`) so two agents can't both claim the same task. Because the store is Dolt, every write is a versioned change with full commit history and three-way cell-level merge — concurrent edits to *different fields of the same issue* merge cleanly rather than conflicting.
+Writes mutate the `issues` row and append to `events`. `bd update <id> --claim` is **atomic** (sets `assignee` + `status=in_progress` in one operation, `README.md:75`) so two agents can't both claim the same task. Because the store is Dolt, every write is a versioned change with full commit history and three-way cell-level merge — concurrent edits to *different fields of the same issue* merge cleanly rather than conflicting.
 
-Supersession is explicit and graph-shaped: emit a `supersedes` dependency edge (`types.go:794`) to chain an issue to the one it replaces. Contrast [[Profile__RetainDB]] (bi-temporal `validFrom`/`validUntil` columns) and [[Profile__Neo]] (`superseded_by` chain on a fact) — Beads encodes the same idea as a typed edge in the work graph.
+Supersession is explicit and graph-shaped: emit a `supersedes` dependency edge (`types.go:1486`) to chain an issue to the one it replaces. Contrast [[Profile__RetainDB]] (bi-temporal `validFrom`/`validUntil` columns) and [[Profile__Neo]] (`superseded_by` chain on a fact) — Beads encodes the same idea as a typed edge in the work graph.
 
 There is no LLM in the write path for ordinary task CRUD. The only LLM call Beads makes on its own is **compaction** (below).
 
@@ -146,14 +146,14 @@ There is no LLM in the write path for ordinary task CRUD. The only LLM call Bead
 
 This is the part of Beads that maps onto "agent memory" as the rest of the study uses the term, and it is deliberately minimal (`cmd/bd/memory.go`):
 
-- **`bd remember "<insight>"`** — stores the insight under config key `kv.memory.<slug>`, where `<slug>` is the first ~8 words slugified (`memory.go:21-42`), or an explicit `--key`. Re-using a key updates in place. Stored as a plain string in the `config` table.
+- **`bd remember "<insight>"`** — stores the insight under config key `kv.memory.<slug>`, where `<slug>` is derived from the first words of the insight, or an explicit `--key`. The prefix now lives in `internal/storage/kvkeys/kvkeys.go:21`, and the memory plane has its own package (`memoryops/`, `internal/storage/memoryops/`). Re-using a key updates in place. Stored as a plain string in the `config` table.
 - **`bd recall <key>`** — fetch one memory by key.
-- **`bd memories [search]`** — list all, or **substring-filter** by key/value (`memory.go:146-155`). No embedding, no ranking.
+- **`bd memories [search]`** — list all, or **substring-filter** by key/value (`printMemoriesResult`, `memory.go:335`). No embedding, no ranking.
 - **`bd forget <key>`** — delete.
 
-The recall trigger is `bd prime` (`cmd/bd/prime.go`): designed to run as a **SessionStart hook** for Claude Code / Codex / Gemini CLI, it prints workflow context plus all stored memories so the agent re-acquires them after every context compaction (`prime.go:55-72`). `--memories-only` injects just the memories. A project can override the whole output with `.beads/PRIME.md` (`prime.go:70`).
+The recall trigger is `bd prime` (`cmd/bd/prime.go`): designed to run as a **SessionStart hook** for Claude Code / Codex / Gemini CLI, it prints workflow context plus all stored memories so the agent re-acquires them after every context compaction (`prime.go:98`). `--memories-only` injects just the memories, `--no-memories` drops them, and `--max-memories` / `--max-memory-chars` cap the injection (`prime.go:127-136`). A project can override the workflow text with `.beads/PRIME.md`, and there is now a user-global `~/.config/beads/PRIME.md` fallback (`prime.go:67-81, 117-124`).
 
-So the mechanism for "memory that survives compaction and account rotation" (`memory.go:48`) is: **write small insights as KV, re-inject them every session via a hook.** It is the opposite philosophy from [[Profile__Letta]]'s self-editing core memory or [[Profile__Mem0]]'s extraction pipeline — there is no automatic capture; the agent (or human) decides what to `remember`.
+So the mechanism for "memory that survives compaction and account rotation" (`memory.go:429`) is: **write small insights as KV, re-inject them every session via a hook.** It is the opposite philosophy from [[Profile__Letta]]'s self-editing core memory or [[Profile__Mem0]]'s extraction pipeline — there is no automatic capture; the agent (or human) decides what to `remember`.
 
 ## Recall surface — SQL views and graph queries, JSON for agents
 
@@ -167,17 +167,17 @@ So the mechanism for "memory that survives compaction and account rotation" (`me
 | `bd prime` | Workflow context + persistent memories | `config` KV |
 | `bd memories [q]` | List/substring-search KV memories | `config` KV |
 
-Every command supports `--json` for agent consumption (`README.md:53`). The recall primitive is "query the graph," not "embed the query and find neighbors." Cycle detection over the dependency graph is a benchmarked hot path (`BENCHMARKS.md:30-34`), as is `GetReadyWork` over 10K–20K-issue datasets.
+Every command supports `--json` for agent consumption. The recall primitive is "query the graph," not "embed the query and find neighbors." Cycle detection over the dependency graph is a benchmarked hot path (`BENCHMARKS.md:30-34`), as is `GetReadyWork` over 10K–20K-issue datasets.
 
 ## Eviction & compaction — AI "memory decay" with reversible snapshots
 
-Beads has a real, AI-driven compaction story (`internal/compact/`), framed as *"semantic memory decay"* (`README.md:55`):
+Beads has a real, AI-driven compaction story (`internal/compact/`), framed as *"semantic memory decay"* (`README.md:65`):
 
-- **Trigger / eligibility:** `compactableStore.CheckEligibility(issueID, tier)` (`compactor.go:35-41`) gates which closed issues are candidates; `GetTier1Candidates` / `GetTier2Candidates` are benchmarked (`BENCHMARKS.md:26-28`).
-- **Summarizer:** Claude Haiku via the official `anthropic-sdk-go` (`haiku.go:15, 47-74`), model from `config.DefaultAIModel()`, `MaxTokens: 1024`, with exponential-backoff retry on 429/5xx (`haiku.go:127-227`). API key from `ANTHROPIC_API_KEY` → `ai.api_key` config; absent a key, compaction silently degrades to dry-run (`compactor.go:64-72`).
-- **Tier 1 transform** (`compactor.go:87-157`): replace `description` with a structured Summary / Key Decisions / Resolution (prompt at `haiku.go:264-291`), and blank `design` / `notes` / `acceptance_criteria`. **Refuses to compact if the summary isn't actually shorter** (`compactor.go:122-130`).
+- **Trigger / eligibility:** `compactableStore.CheckEligibility(issueID, tier)` (`compactor.go:36`) gates which closed issues are candidates; `GetTier1Candidates` / `GetTier2Candidates` are benchmarked (`BENCHMARKS.md:26-28`).
+- **Summarizer:** Claude Haiku via the official `anthropic-sdk-go` (`haiku.go:14-15, 47-72`), model from `config.DefaultAIModelFor(keySource)`, `MaxTokens: 1024` (`haiku.go:171`), with exponential-backoff retry on 429/5xx (`callWithRetry`, `haiku.go:159-260`). Key resolution order is `ANTHROPIC_API_KEY` → `MINIMAX_API_KEY` → `ai.api_key` config (`haiku.go:48`); a MiniMax key gets a MiniMax default model (`internal/config/config.go:1113`). Absent a key, compaction degrades to dry-run.
+- **Tier 1 transform** (`CompactTier1`, `compactor.go:88`): replace `description` with a structured Summary / Key Decisions / Resolution (prompt template at `haiku.go:296-323`), and blank `design` / `notes` / `acceptance_criteria`. **Refuses to compact if the summary isn't actually shorter** (`compactor.go:124-130`).
 - **Reversibility:** the original content + archived events are written to `issue_snapshots` / `compaction_snapshots` (`0009`, `0010`) before the row is overwritten; `compaction_level`, `original_size`, and the git commit hash at compaction time are recorded on the issue.
-- **Batching:** `CompactTier1Batch` runs with a concurrency semaphore (default 5, `compactor.go:13, 168-212`).
+- **Batching:** `CompactTier1Batch` runs with a concurrency semaphore (default 5, `compactor.go:13, 176`).
 - **Wisp TTL:** ephemeral `wisps` are compacted/expired on a TTL keyed by `wisp_type`, distinct from the issue-summarization path.
 
 This is the most concrete eviction policy in the study after [[Profile__ByteRover]]'s "dream" cycle — and unlike most entries, it keeps the original recoverable rather than discarding it.
@@ -194,26 +194,26 @@ The persisted form is the Dolt database under `.beads/`. For interchange there i
  "dependency_count":0,"dependent_count":0,"comment_count":0}
 ```
 
-Crucially, the README is emphatic that **JSONL is not the source of truth** (`README.md:122-126, 170-173`): it does not capture Dolt branches, commit history, working-set state, or non-issue tables. Cross-machine sync is `bd dolt push`/`bd dolt pull` against `refs/dolt/data` — *not* git-committing the JSONL. For a restorable backup you use `bd backup` or a Dolt backup, not the export.
+Crucially, the README is emphatic that **JSONL is not the source of truth** (`README.md:169-173`): it does not capture Dolt branches, commit history, working-set state, or non-issue tables. Cross-machine sync is `bd dolt push`/`bd dolt pull` against `refs/dolt/data` — *not* git-committing the JSONL. For a restorable backup you use `bd backup` or a Dolt backup, not the export.
 
 The study's "could a non-AI program parse it cleanly?" check: **yes, trivially** — the JSONL export is plain JSON. But "is the export the database?" — **no**. That gap (legible export vs. authoritative versioned DB) is itself the interesting design point, and the inverse of [[Profile__ByteRover]] / [[Profile__Letta]]-git-mode, where the human-readable files *are* the store.
 
 ## Scopes & namespacing
 
-Beads' scope is the **project directory** (`.beads/`), discovered by walking up from the cwd, or pinned via `BEADS_DIR` (`README.md:186-198`). There is no `user_id` axis — like [[Profile__ByteRover]], the unit of memory is the project, not the person. Within a project:
+Beads' scope is the **project directory** (`.beads/`), discovered by walking up from the cwd, or pinned via `BEADS_DIR` (`README.md:413-440`). There is no `user_id` axis — like [[Profile__ByteRover]], the unit of memory is the project, not the person. Within a project:
 
-- **ID prefix** (`bd-`, configurable; `bd-main-...` in the dogfood db) namespaces issues; cross-rig creation can override the prefix (`types.go:69-70`).
-- **`source_repo`** / **`source_system`** mark multi-repo and federation provenance (`types.go:54, 68`).
+- **ID prefix** (`bd-`, configurable; `bd-main-...` in the dogfood db) namespaces issues; cross-rig creation can override the prefix (`types.go:152-153`).
+- **`source_repo`** / **`source_system`** mark multi-repo and federation provenance (`types.go:137, 151`).
 - **Wisps** are the per-machine, non-synced scope — ephemeral local state that never leaves the clone.
 - **Federation peers** (below) are the cross-org scope.
 
 ## Operational story — local-first, git-optional, federation-capable
 
-- **Install once, use everywhere** (`README.md:17-37`): `brew install beads` / `npm i -g @beads/bd`, then `bd init` per project. The repo is a *tool* you install, not a dependency you vendor (`README.md:33`).
-- **Git-optional** (`README.md:179-208`): set `BEADS_DIR` + `bd init --stealth` (sets `no-git-ops: true`) and every core command runs with zero git calls — for Sapling/Jujutsu/Piper repos, monorepo subdirs, CI, or ephemeral `/tmp` databases.
+- **Install once, use everywhere** (`README.md:30-43`): `brew install beads` / `npm i -g @beads/bd`, then `bd init` per project. The repo is a *tool* you install, not a dependency you vendor (`README.md:43`).
+- **Git-optional** (`README.md:413-440`): set `BEADS_DIR` + `bd init --stealth` (sets `no-git-ops: true`) and every core command runs with zero git calls — for Sapling/Jujutsu/Piper repos, monorepo subdirs, CI, or ephemeral `/tmp` databases.
 - **Agent onboarding:** `bd init` writes/updates `AGENTS.md` so agents discover the workflow; `bd setup <agent>` installs richer integration (hooks, skills) for Claude Code, Codex, Factory.ai Droid, Cursor, mux, and more. An **MCP server** ships as `beads-mcp` on PyPI.
 - **Federation** (`FEDERATION-SETUP.md`): peer-to-peer sync of whole databases over Dolt's distributed VC, with **data-sovereignty tiers** (T1/T2/… for GDPR / regional compliance) stored per peer in `federation_peers.sovereignty`. `bd federation add-peer <name> <endpoint>`.
-- **Contributor vs maintainer** (`README.md:81-84`): `bd init --contributor` routes planning issues to a separate repo (e.g. `~/.beads-planning`) so a fork's experimental task graph stays out of PRs.
+- **Contributor vs maintainer** (`README.md:100-103`): `bd init --contributor` routes planning issues to a separate repo (e.g. `~/.beads-planning`) so a fork's experimental task graph stays out of PRs.
 
 ## How this compares to the rest of the study
 
@@ -235,12 +235,12 @@ The cleanest pairing is **Beads vs Volt**: both are coding-agent memory, both le
 
 ## Working-checklist answers
 
-Per the study's reading rubric (`README.md:17-35`):
+Per the study's reading rubric (the study README's checklist):
 
 - **Storage topology.** Single store: Dolt (Git-like versioned MySQL-compatible SQL), embedded in-process by default or external `dolt sql-server` in server mode. No vector/KV/graph-DB split — the graph is SQL tables (`issues` + `dependencies`).
 - **Write policy.** Mutate the `issues` row, append to immutable `events`. Atomic claims. Dolt commit history + cell-level merge per write. Supersession via `supersedes` edge. No LLM in the CRUD path; LLM only for compaction.
 - **Scopes & namespacing.** Project directory (`.beads/`, walk-up or `BEADS_DIR`); ID prefix; `source_repo`/`source_system`; per-machine wisps; federation peers with sovereignty tiers. No user_id axis.
-- **Schema of a memory.** ~50-column `issues` row (`0001` / `types.go:16-105`): five structured content fields, status/priority/type enums, full timestamp set, compaction metadata, JSON `metadata`, coordination fields. Typed `dependencies` edges (~19 kinds). `events` audit trail. `config` KV for `bd remember`.
+- **Schema of a memory.** ~50-column `issues` row (`0001` / `types.go:20-223`): five structured content fields, status/priority/type enums, full timestamp set, compaction metadata, JSON `metadata`, coordination fields. Typed `dependencies` edges (~19 kinds). `events` audit trail. `config` KV for `bd remember`.
 - **Recall surface.** SQL: `bd ready` (`ready_issues` view), `bd blocked`, `bd show`, `bd list`, `bd dep tree`, `bd prime`, `bd memories`. `--json` everywhere. Graph traversal + cycle detection, no semantic search.
 - **Eviction & compaction.** `internal/compact`: Haiku-summarized "memory decay" of closed issues (Tier 1+), originals preserved in `issue_snapshots`/`compaction_snapshots`, refuses to grow size; wisp TTL by `wisp_type`.
 - **Serialization on disk.** Dolt DB under `.beads/` is authoritative. `.beads/issues.jsonl` is a plain-JSON export for viewing/interchange — **not** the source of truth, not a full backup. Sync via `bd dolt push/pull` on `refs/dolt/data`.
@@ -248,13 +248,26 @@ Per the study's reading rubric (`README.md:17-35`):
 
 ## Pointers worth following
 
-- `internal/storage/schema/migrations/0001_create_issues.up.sql` — the full issue schema in one file; pair with `internal/types/types.go:16-105` for the typed view.
-- `internal/types/types.go:776-812` — the dependency-edge taxonomy. Reading this is the fastest way to see that Beads is a typed knowledge graph wearing an issue-tracker's clothes.
-- `internal/idgen/hash.go:55-85` — hash-ID generation; the conflict-free-multi-agent story in 30 lines.
-- `internal/compact/compactor.go` + `internal/compact/haiku.go` — the memory-decay engine and the exact Haiku prompt (`haiku.go:264-291`).
+- `internal/storage/schema/migrations/0001_create_issues.up.sql` — the full issue schema in one file; pair with `internal/types/types.go:20-223` for the typed view.
+- `internal/types/types.go:1468-1516` — the dependency-edge taxonomy. Reading this is the fastest way to see that Beads is a typed knowledge graph wearing an issue-tracker's clothes.
+- `internal/idgen/hash.go:55` — hash-ID generation; the conflict-free-multi-agent story in about 30 lines.
+- `internal/compact/compactor.go` + `internal/compact/haiku.go` — the memory-decay engine and the exact Haiku prompt (`haiku.go:296-323`).
 - `cmd/bd/memory.go` + `cmd/bd/prime.go` — the literal `remember`/`recall`/`prime` surface; the "survive compaction via SessionStart hook re-injection" mechanism.
 - `internal/storage/schema/migrations/0037_uuid_primary_keys.up.sql` — read the header comment for the federation-collision rationale that drives the whole ID design.
 - `FEDERATION-SETUP.md` — the distributed / data-sovereignty story; the only entry in the study with a GDPR-tier knob.
+
+## Changes since the previous pin (2026-05-27 → 2026-11-20)
+
+`8aefc326a60a` → `786241099046`, 2,541 commits on `main`. Releases in range: v1.0.5, v1.1.0, v1.1.1/1.1.2, v1.2.0–v1.2.2, v1.3.0 (2026-09-15), then v1.3.1–v1.3.4 (latest stable, 2026-11-04, cut from a hotfix branch) and v1.4.0-rc.1 through rc.4 on `release/1.4.0`. The pinned `main` commit describes as `v1.3.0-884`. License (MIT) and the Go module path (`github.com/steveyegge/beads`) are unchanged. The thesis holds: there is still no embedding or vector search anywhere in recall.
+
+- **Still Dolt-only for local storage, with two new doors.** PostgreSQL/MySQL adapters were merged and rolled back before a tagged release (CHANGELOG, bd-sadcd). New: an experimental HTTP backend (`bd connect`, `README.md:215-260`) that turns a workspace into a thin client of a remote `bd serve`, and an experimental public contract for out-of-tree storage backends (`backend/`, `backend/conformance`).
+- **`bd serve`: the work graph over HTTP.** An OpenAPI-specified loopback server (`internal/httpapi/spec/openapi.v0.yaml`) with `ready`, `issues`, `context`, and an atomic `:claim` write, typed RFC 9457 errors, and optional bearer auth. This is the first non-CLI recall surface and the one an orchestrator would hold open.
+- **A durable events journal for mirrors.** `bd_events_journal` (migration `0064_create_events_journal.up.sql`, actor added in `0066`) records each committed mutation with the issue's full post-mutation snapshot, written in the same transaction. Opt-in (`bd config set events-journal true`), clone-local, retention-bounded. It gives external memory systems a replayable feed instead of snapshot diffing.
+- **The `events` audit table left the versioned plane** (`0062_events_dolt_ignore.up.sql`): audit rows no longer mint Dolt history or replicate. Typed links to external artifacts (commit SHAs, PRs, transcripts) moved to a separate append-only `provenance_events` table (`0063`).
+- **Per-issue version history is being built** (`0067_add_versioned_beads_schema.up.sql`, `VERSIONED-BEADS-WRITE-PATHS.md`): an `issue_versions` log and a `current_revision` column for compare-and-swap updates. The schema is at v74 (`0074_create_id_tombstones`).
+- **The memory plane got its own package and limits.** `memoryops/` documents memories as user data under the `kv.memory.` namespace that converge on pull (`internal/storage/versioncontrolops/mergesettle.go`). `bd remember` gains an opt-in corpus budget (`memories.budget-chars`); `bd prime` gains `--no-memories`, `--max-memories`, `--max-memory-chars`, a global `PRIME.md`, and a banner when the memory plane could not be read. Prime's guidance now says project facts go in `bd remember` and per-operator preferences stay in the harness's own `MEMORY.md`, instead of forbidding `MEMORY.md`.
+- **Compaction is unchanged in shape** (`internal/compact/`), but accepts a MiniMax key and model as an alternative to Anthropic.
+- **Much of the release volume is security hardening** of shared config: endpoint pinning so a committed `.beads/` file cannot redirect credentials, no `$VAR` expansion in `.beads/.env`, and scrubbed telemetry (CHANGELOG `[Unreleased]` and 1.3.x).
 
 ## Open questions for the study
 

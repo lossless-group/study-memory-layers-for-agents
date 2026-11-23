@@ -12,13 +12,15 @@ date_created: 2026-05-17
 site_uuid: 679199ab-f28a-474a-b7cb-bb45ffa4b54e
 hex_code: 53u8t2
 date_authored_initial_draft: 2026-05-17
-date_authored_current_draft: 2026-05-17
+date_authored_current_draft: 2026-11-23
 lede: >-
   The one entry where the agent itself — not an extraction pipeline, not a
   background summarizer — is the memory manager.
 summary: >-
   Profile of Letta (letta-ai, formerly MemGPT) as pinned in the
-  memory-layers-for-agents study. It is the study's most lineage-heavy entry and
+  memory-layers-for-agents study. Since August 2026 the repo's main branch is a
+  landing page; the server code this profile describes is preserved on the
+  archive branch, and active development moved to letta-ai/letta-code. It is the study's most lineage-heavy entry and
   its closest structural relative to the context-vigilance discipline. Covers
   the two-tier memory model (agent-editable core blocks rendered into the system
   prompt, pgvector-backed archival passages), the core_memory_append and
@@ -30,7 +32,7 @@ summary: >-
   into a context-v directory directly.
 publish: true
 title: Letta — Profile
-date_modified: 2026-08-18
+date_modified: 2026-11-23
 authors:
   - Michael Staton
 status: Reference
@@ -40,6 +42,8 @@ type: Profiles
 # Letta — Profile
 
 A profile of Letta as it lives in this study (`studies/memory-layers-for-agents/letta/`). Cites pinned paths so you can jump to source rather than trust paraphrase. Read alongside [`Profile__Mem0.md`](./Profile__Mem0.md) and [`Profile__Neo.md`](./Profile__Neo.md) — Letta sits between them on the human-curated ↔ agent-self-curated axis, and is the most lineage-heavy entry in the study (it is the direct successor to MemGPT).
+
+> **Pin status (2026-11-23).** At the current pin (`8816d3a85168`), `main` holds only a landing-page `README.md`, `AGENTS.md`, policy files, and `LICENSE`. Upstream removed the V1 server source on 2026-08-15 (commit `87fd37aab`, "archive the legacy server repository") and preserved it on the `archive` branch. Every `letta/...`, `alembic/...`, and `compose.yaml` path cited below resolves on `origin/archive` (which contains the previous pin `1131535716e8` with only docs changes on top) and at tag `0.16.8`, not in the checked-out working tree. Upstream's `AGENTS.md` says the archived code is unsupported and asks that it not be used for benchmarks, comparisons, or new integrations. Read this profile as a description of the MemGPT-lineage V1 server design, not of current Letta, which lives in `letta-ai/letta-code`. See "Changes since the previous pin" below.
 
 ## TL;DR
 
@@ -307,6 +311,15 @@ Letta-with-git-enabled is structurally the closest the study has to `context-vig
 The transferable lesson: if we ever let an agent write to `context-v/` directly, **Letta's git-backed memory is the model to copy**. Block-as-file mapping, every edit as a commit, history table for rollback, descriptions explaining what each block is for. The `context-vigilance` discipline already produces the right artifacts; Letta shows what the agent-side commit pipeline looks like.
 
 The honest reverse lesson — what `context-vigilance` could teach Letta: **frontmatter as the contract**. Letta's blocks have `description` fields, but no semantic-version, no status, no first-class wikilink graph between blocks. The `context-vigilance` frontmatter conventions would make Letta blocks dramatically more navigable.
+
+## Changes since the previous pin (2026-05-14 → 2026-10-18)
+
+- Old pin `1131535716e8`, new pin `8816d3a85168`, 12 commits. No new release tag; the newest tag in history is still `0.16.8`.
+- **The server is gone from `main`.** Commit `87fd37aab` (2026-08-15) deleted about 1,150 files (the `letta/` package, `alembic/`, compose files, tests, `uv.lock`). The tree at the new pin is `README.md`, `AGENTS.md`, `AI_POLICY.md`, `CITATION.cff`, `CONTRIBUTING.md`, `LICENSE`, `PRIVACY.md`, `SECURITY.md`, `TERMS.md`, `.github/`.
+- **`README.md`** now says the current source lives in `letta-ai/letta-code` (npm `@letta-ai/letta-code`, the `letta` terminal UI and `letta server` App Server), plus chat.letta.com, channels (Slack, Telegram, Discord), the TypeScript Letta Agent SDK, and Letta Cloud. It points to the `archive` branch for the retired V1 API server.
+- **`AGENTS.md`** (added 2026-07-03, tightened later) tells coding agents not to use the archive branch, old tags, the old Python packages, or the `letta/letta` Docker image for production, benchmarks, research, comparisons, or new integrations, and not to infer current Letta behavior from this repo.
+- License is unchanged (Apache-2.0, `LICENSE`).
+- For this study: the design analysis above still holds as a record of the MemGPT-lineage server, and the old code is reachable on `origin/archive`. A profile of current Letta would need `letta-ai/letta-code`, which is not pinned here.
 
 ## One-line summary
 

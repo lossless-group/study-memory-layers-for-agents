@@ -12,7 +12,7 @@ date_created: 2026-05-17
 site_uuid: fb3a910b-bcc6-49ed-ac48-5593b8f99466
 hex_code: vqmifq
 date_authored_initial_draft: 2026-05-17
-date_authored_current_draft: 2026-05-17
+date_authored_current_draft: 2026-11-23
 lede: >-
   Memory as a dense rank-8 state matrix inside each attention head, updated
   token by token — the model never looks anything up.
@@ -30,7 +30,7 @@ summary: >-
   read it looking for something deployable against a closed API model.
 publish: true
 title: Delta-Mem — Profile
-date_modified: 2026-08-18
+date_modified: 2026-11-23
 authors:
   - Michael Staton
 status: Reference
@@ -43,17 +43,17 @@ A profile of Delta-Mem as it lives in this study (`studies/memory-layers-for-age
 
 ## TL;DR
 
-Delta-Mem is the official code for the paper [*δ-mem: Efficient Online Memory for Large Language Models*](https://arxiv.org/abs/2605.12357) (declare-lab / SUTD, May 2026, `README.md:6`). The thesis: external retrieval pays unbounded context cost and static parametric memory is frozen at training time. What's needed is **a compact Online State of Associative Memory alongside a frozen full-attention backbone** that "updates dynamically during interaction and directly influences the model's internal computation during inference" (`README.md:17, 23`).
+Delta-Mem is the official code for the paper [*δ-mem: Efficient Online Memory for Large Language Models*](https://arxiv.org/abs/2605.12357) (declare-lab / SUTD, May 2026, accepted to NeurIPS 2026 per the README title, `README.md:2, 7`). The thesis: external retrieval pays unbounded context cost and static parametric memory is frozen at training time. What's needed is **a compact Online State of Associative Memory alongside a frozen full-attention backbone** that "updates dynamically during interaction and directly influences the model's internal computation during inference" (`README.md:11, 17`).
 
-Mechanically, Delta-Mem wraps each attention head with a `DeltaMemAttention` module (`deltamem/delta_impl.py:500`) that projects hidden states into a low-rank (default rank=8) memory space and maintains a dense **state matrix** `delta_state` (`delta_impl.py:614`) per head per batch, updated token-by-token via a **delta-rule** affine scan (`delta_impl.py:1927`):
+Mechanically, Delta-Mem wraps each attention head with a `DeltaMemAttention` module (`deltamem/core/delta_impl.py:500`) that projects hidden states into a low-rank (default rank=8) memory space and maintains a dense **state matrix** `delta_state` (`delta_impl.py:596`) per head per batch, updated token-by-token via a **delta-rule** affine scan (`delta_impl.py:1575`):
 
 ```
 S_{t+1} = λ_t · S_t  −  β_t · (S_t k_t) ⊗ k_t  +  β_t · v_t ⊗ k_t
 ```
 
-where λ (keep) and β (write/erase) are learned per-token gates. Three write granularities — **TSW** (token), **SSW** (sentence), **MSW** (message) — control how often the state is updated (`README.md:19`, `delta_impl.py:40-44`). The released model uses TSW + rank-8 Q/O + write length 8192 on Qwen3-4B-Instruct (`README.md:29-30`, available at `declare-lab/delta-mem_qwen3_4b-instruct`).
+where λ (keep) and β (write/erase) are learned per-token gates. Three write granularities — **TSW** (token), **SSW** (sentence), **MSW** (message) — control how often the state is updated (`README.md:13`, `delta_impl.py:40-44`). The released model uses TSW + rank-8 Q/O + write length 8192 on Qwen3-4B-Instruct (`README.md:24`, available at `declare-lab/delta-mem_qwen3_4b-instruct`).
 
-Critically: the base model weights are **frozen**. Only the adapter (the delta-rule projections + gates) is trained. But this is **not** a standard PEFT LoRA — adapters are *not* mergeable (`README.md:214`) because the runtime memory read/write path is part of model execution.
+Critically: the base model weights are **frozen**. Only the adapter (the delta-rule projections + gates) is trained. But this is **not** a standard PEFT LoRA — adapters are *not* mergeable (`README.md:208`) because the runtime memory read/write path is part of model execution.
 
 If you want one sentence: **Delta-Mem is a frozen-backbone transformer adapter that gives each attention head a low-rank dense state matrix updated by a learned delta rule, making memory an architectural property of the model rather than an external system the agent queries.**
 
@@ -70,16 +70,16 @@ If you build agent systems, you probably won't deploy Delta-Mem directly — it 
 
 ## The architectural design
 
-Delta-Mem replaces each `self_attn` module in target transformer layers (`deltamem/delta.py:94`, `delta_impl.py:500`). Inside the wrapped attention:
+Delta-Mem replaces each `self_attn` module in target transformer layers (`deltamem/core/delta.py:86-98`, `delta_impl.py:500`). Inside the wrapped attention:
 
-**Six new linear projections** (`delta_impl.py:590-597`):
+**Six new linear projections** (`delta_impl.py:576-582`):
 
 - `memory_q_proj`, `memory_k_proj`, `memory_v_proj` — project hidden states into a low-rank memory space of size `state_read_dim = rank × num_state_heads`.
 - `delta_q_proj`, `delta_k_proj`, `delta_v_proj`, `delta_o_proj` — project the memory readout back to standard QKV/O space so it composes with the frozen base attention.
 
-**The state matrix** (`delta_impl.py:614`): a square `rank × rank` tensor per attention head, maintained per batch element across the sequence. This is what makes Delta-Mem *stateful* in a way standard transformers aren't.
+**The state matrix** (`delta_impl.py:596`): a square `rank × rank` tensor per attention head, maintained per batch element across the sequence. This is what makes Delta-Mem *stateful* in a way standard transformers aren't.
 
-**Update rule** (`delta_impl.py:1927`):
+**Update rule** (`delta_impl.py:1575`):
 
 ```python
 next_state = keep_t * current_state - erase_t * pred_outer + write_t * write_outer
@@ -89,11 +89,11 @@ next_state = keep_t * current_state - erase_t * pred_outer + write_t * write_out
 
 Hyperparameters (`delta_impl.py:530`): default `rank=8`, `alpha=16.0` (so `delta_scaling = alpha/rank = 2`), plus initialisation values for the β/λ biases. Optional `rankwise_gates=True` makes the gates per-rank-dimension rather than scalar.
 
-The state can be **read/written across sessions** via `get_delta_mem_online_state` / `load_delta_mem_online_state` (`delta_impl.py:2727, 2736`). This is the mechanism that turns the adapter into a persistent-memory device — the state lives outside the conversation and can be saved, restored, transferred.
+The state can be **read/written across sessions** via `get_delta_mem_online_state` / `load_delta_mem_online_state` (`delta_impl.py:2255, 2264`). This is the mechanism that turns the adapter into a persistent-memory device — the state lives outside the conversation and can be saved, restored, transferred.
 
 ## Three write granularities
 
-(`README.md:19`, `delta_impl.py:40-44, 1417-1527`, `deltamem/.../write_segmentation.py:31`)
+(`README.md:13`, `delta_impl.py:40-44, 1350-1460`, `deltamem/core/write_segmentation.py:31`)
 
 | Mode | When state updates | Use case |
 |---|---|---|
@@ -105,7 +105,7 @@ This is the only entry in the study where "write policy" is a *temporal granular
 
 ## The kernel — Triton-accelerated affine scan
 
-The state update is a recurrence (each step depends on the previous), so it can't be trivially batched. Delta-Mem implements it as an **affine scan** with a Triton kernel (`deltamem/.../affine_scan.py`, called from `delta_impl.py:1895-1938`) plus a pure-PyTorch fallback. CUDA-recommended; CPU-only use isn't supported in practice (`README.md:70`).
+The state update is a recurrence (each step depends on the previous), so it can't be trivially batched. Delta-Mem implements it as an **affine scan** with a Triton kernel (`deltamem/kernels/affine_scan.py`, called from `delta_impl.py:1543-1700`) plus a pure-PyTorch fallback. CUDA-recommended; CPU-only use isn't supported in practice (`README.md:64`).
 
 This is also where the "efficient" in "Efficient Online Memory" earns its keep — the scan is sub-quadratic in sequence length, unlike full-attention memory layouts that scale O(n²).
 
@@ -117,7 +117,7 @@ This is also where the "efficient" in "Efficient Online Memory" earns its keep �
 - **DeepSpeed ZeRO-2** for distributed training, bf16 precision (`deepspeed_zero2.json`).
 - Pre-tokenized dataset caching supported (`train/delta_sft.py:25-27`).
 - Scripts (`scripts/run_qasper_multimodel_write8192_train_and_benchmark_suite.sh`) automate full training + evaluation suites across TSW/SSW/MSW variants on QASPER.
-- **Base models tested:** Qwen3-4B/8B and SmolLM3-3B (`README.md:29`).
+- **Base models tested:** Qwen3-4B/8B and SmolLM3-3B (`README.md:13`).
 
 Only the adapter parameters train. The frozen-backbone choice keeps cost bounded and means an adapter for a given base model is portable across deployments — but it also means **you can only Delta-Mem-ify a model you have weights for and can adapter-train**.
 
@@ -141,11 +141,11 @@ Numbers and direct comparisons against Mem0 / MemPalace on LoCoMo would require 
 
 | Path | What's there |
 |---|---|
-| `deltamem/delta.py` | `attach_delta_mem(model, config)` — the entry point that wraps target attention modules |
-| `deltamem/delta_impl.py` | The core: `DeltaMemAttention`, the state-matrix logic, the delta-rule scan (~2700 LOC) |
-| `deltamem/.../affine_scan.py` | Triton kernel for the sub-quadratic scan + PyTorch fallback |
-| `deltamem/.../write_segmentation.py` | Sentence/message segmentation for SSW/MSW modes |
-| `deltamem/.../backbone_compat.py` | Compatibility shims for Qwen3Attention / SmolLM3Attention |
+| `deltamem/core/delta.py` | `attach_delta_mem(model, config)` — the entry point that wraps target attention modules |
+| `deltamem/core/delta_impl.py` | The core: `DeltaMemAttention`, the state-matrix logic, the delta-rule scan (~2,330 LOC after the June 2026 cleanup) |
+| `deltamem/kernels/affine_scan.py` | Triton kernel for the sub-quadratic scan + PyTorch fallback |
+| `deltamem/core/write_segmentation.py` | Sentence/message segmentation for SSW/MSW modes |
+| `deltamem/core/backbone_compat.py` | Compatibility shims for Qwen3Attention / SmolLM3Attention |
 | `deltamem/train/delta_sft.py` | Supervised fine-tuning entry point |
 | `deltamem/runtime/session.py` | `DeltaMemChatSession` — session wrapper, state reset, message-ID tracking |
 | `deltamem/runtime/chat_cli.py` | Minimal interactive demo |
@@ -155,13 +155,13 @@ Numbers and direct comparisons against Mem0 / MemPalace on LoCoMo would require 
 | `deepspeed_zero2.json` | DeepSpeed config |
 | `requirements.txt` | Python deps |
 
-If you read three files: `README.md` (the framing and the API), `deltamem/delta_impl.py` (the architecture, especially the `DeltaMemAttention` class and the scan around line 1895-1938), `deltamem/eval/locomo_protocol.py` (how memory persistence is operationalized as a test).
+If you read three files: `README.md` (the framing and the API), `deltamem/core/delta_impl.py` (the architecture, especially the `DeltaMemAttention` class and the scan around lines 1543-1700), `deltamem/eval/locomo_protocol.py` (how memory persistence is operationalized as a test).
 
 ## Public release
 
-Hugging Face: [`declare-lab/delta-mem_qwen3_4b-instruct`](https://huggingface.co/declare-lab/delta-mem_qwen3_4b-instruct) (`README.md:12`) — the TSW adapter for Qwen3-4B-Instruct.
+Hugging Face: [`declare-lab/delta-mem_qwen3_4b-instruct`](https://huggingface.co/declare-lab/delta-mem_qwen3_4b-instruct) (`README.md:8, 24`) — the TSW adapter for Qwen3-4B-Instruct.
 
-Loading (`README.md:192-212`):
+Loading (`README.md:175-208`):
 
 ```python
 config = HFDeltaMemConfig.from_pretrained(adapter_dir)
@@ -176,7 +176,7 @@ Inference requires running the wrapped model with proper session management — 
 - **Treat it as an architectural experiment, not a drop-in library.** If you're not training adapters on your own base model, you're using the released Qwen3-4B-Instruct + TSW combination as-is.
 - **Pick the granularity for your use case.** TSW for high-fidelity, low-coarseness updates. MSW if you're processing long structured dialogues and a one-update-per-turn coarseness is acceptable.
 - **Manage state explicitly.** No automatic per-user persistence. The state is yours to save, restore, and reset. This is more like managing a database connection than calling an SDK.
-- **Don't expect to merge adapters into the backbone.** Delta-Mem isn't LoRA. The forward-pass code path is the integration; you ship the adapter alongside the backbone (`README.md:214`).
+- **Don't expect to merge adapters into the backbone.** Delta-Mem isn't LoRA. The forward-pass code path is the integration; you ship the adapter alongside the backbone (`README.md:208`).
 - **Benchmark on your domain before adopting.** The published LoCoMo wins are for Qwen3-4B with this specific adapter. Your domain, your base model, your evaluation.
 
 ## When NOT to reach for this
@@ -212,6 +212,13 @@ These two are at *maximum distance* on every axis the study cares about. `contex
 There's no composition story; they don't speak the same vocabulary. The honest mapping: `context-vigilance` is *durable, human-readable, agent-grep-able* project knowledge; Delta-Mem is *transient, opaque, model-internal* working memory. Both real, both useful, both at opposite ends of the spectrum the study spans.
 
 The transferable lesson from Delta-Mem back to our work isn't a code pattern — it's the *framing*. When someone asks "how should the agent remember X," the first question to ask is "should this be retrieved or should this be in the model's working state?" `context-vigilance` is retrieval. Delta-Mem is working state. Knowing the difference is the lesson.
+
+## Changes since the previous pin (2026-05-15 → 2026-09-25)
+
+- Old pin `b540797ec8c3`, new pin `bb6e99bb6b3a`, 6 commits. No tags or releases.
+- **Experimental readouts removed** (commit `6a1b12e`, 2026-06-03). The archived `synthetic_kv`, `latent_context`, and `memory_branch` readout paths and their stats collectors were deleted from `deltamem/core/delta_impl.py` (about 470 lines) and `deltamem/train/delta_sft_experimental.py`. `HFDeltaMemConfig` in `deltamem/core/delta.py` still rejects any `memory_readout_mode` other than `"delta"`, now with the message that the archived readouts were removed. The delta-rule mechanism this profile describes is unchanged; line citations above were re-located at the new pin.
+- **README** (`README.md:2`) now titles the paper "(NeurIPS 2026) δ-mem", and adds a note that IFEval needs EleutherAI's `lm-evaluation-harness` cloned next to the repo (`README.md:268-273`).
+- License unchanged (CC-BY-4.0 via README badge; still no `LICENSE` file).
 
 ## A note on license and provenance
 

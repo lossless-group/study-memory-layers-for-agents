@@ -36,28 +36,71 @@ When reading each entry below, the working checklist is:
 
 ---
 
+## Pins last refreshed 2026-11-23
+
+Every submodule now points at the latest commit of its upstream default
+branch. Each profile in [`context-v/profiles/`](./context-v/profiles) has a
+"Changes since the previous pin" section with the details. Commit counts
+include merges. "Latest release" is the newest release at or before the new
+pin; where upstream tags nothing, the package version is given.
+
+| Repo | Old → new commit date | Commits | Latest release |
+|---|---|---|---|
+| beads | 2026-05-27 → 2026-11-20 | 2,541 | v1.3.4 (v1.4.0-rc.4 on a release branch) |
+| byterover-cli | 2026-05-25 → 2026-06-26 | 204 | 3.16.1 (npm; no version tags) |
+| delta-mem | 2026-05-15 → 2026-09-25 | 6 | none tagged |
+| graphify | 2026-05-20 → 2026-11-23 | 2,666 | 0.9.115 (PyPI) |
+| graphiti | 2026-05-14 → 2026-11-22 | 256 | graphiti-core v0.31.2, mcp-v1.1.3 |
+| hindsight | 2026-05-26 → 2026-11-21 | 2,768 | v1.2.3 (1.0 shipped 2026-10-13) |
+| honcho | 2026-05-21 → 2026-11-21 | 432 | v3.6.2 |
+| letta | 2026-05-14 → 2026-10-18 | 12 | 0.16.8 (server code archived) |
+| mem0 | 2026-04-29 → 2026-11-18 | 515 | Python v2.2.1, ts-v3.3.1 |
+| mempalace | 2026-05-17 → 2026-11-22 | 1,662 | v3.12.0 |
+| neo | 2026-05-02 → 2026-11-08 | 363 | 0.63.0 (final; repo retired) |
+| openviking | 2026-05-26 → 2026-11-23 | 2,305 | v0.5.5 |
+| paxm | 2026-07-20 → 2026-08-28 | 20 | v0.2.5 |
+| retaindb | 2026-05-24 → 2026-06-12 | 8 | none tagged (@retaindb/local 0.2.2) |
+| statebench | 2026-03-27 → 2026-10-07 | 72 | v2.0.0 |
+| supermemory | 2026-05-26 → 2026-11-22 | 372 | server-v0.0.9 (SDKs untagged) |
+| understand-anything | 2026-06-19 → 2026-11-22 | 305 | v2.9.8 |
+| volt | 2026-02-27 → 2026-02-27 | 0 | v0.6.2 (unchanged) |
+
+Status changes a reader should know about:
+
+- **Graphify** relicensed from MIT to Apache-2.0 (2026-07-22). The README
+  now names `Graphify-Labs/graphify` as the official repo.
+- **Letta**'s `main` became a landing page on 2026-08-15. The V1 server
+  code profiled here moved to the `archive` branch, and active work is in
+  `letta-ai/letta-code`.
+- **Neo** was retired on 2026-11-08; its README says development continues
+  in CAR. 0.63.0 is the last release.
+- **StateBench** 2.0 found defects in its own scorer and retracted the 1.x
+  numbers.
+
+---
+
 ## The design space at a glance
 
 | Bet | Entry |
 |---|---|
 | Memory baked into the model (frozen-backbone transformer adapter) | [Delta-Mem](./delta-mem) |
 | Real typed bi-temporal graph | [Graphiti](./graphiti) |
-| Self-editing core memory + paged archival (the MemGPT lineage) | [Letta](./letta) |
+| Self-editing core memory + paged archival (the MemGPT lineage; V1 server now archived) | [Letta](./letta) |
 | Hybrid vector + entity-link + tight CRUD API | [Mem0](./mem0) |
 | Verbatim chunks + hybrid recall, no extraction | [MemPalace](./mempalace) |
-| Typed/scoped facts + deterministic supersession + outcome learning | [Neo](./neo) |
+| Typed/scoped facts + deterministic supersession + outcome learning (retired 2026-11) | [Neo](./neo) |
 | Immutable Postgres log + summary DAG | [Volt](./volt) |
 | Folder → in-process NetworkX KG + Leiden + MCP query surface | [Graphify](./graphify) |
-| Multi-agent LLM → one knowledge-graph.json, Zod-normalized; "graphs that teach" (grep + Astro dashboard, not a query server) | [Understand-Anything](./understand-anything) |
+| Multi-agent LLM → one knowledge-graph.json, Zod-normalized; "graphs that teach" (grep + Astro dashboard, plus a small read-only MCP server since 2.9) | [Understand-Anything](./understand-anything) |
 | Multi-peer "theory of mind" — what A knows about B, derived async | [Honcho](./honcho) |
-| Context as a filesystem; L0/L1/L2 abstract tiers; unified memories + resources + skills | [OpenViking](./openviking) |
+| Context as a filesystem; L0/L1/L2 abstract tiers; unified memories + resources + skills; subtree-scoped vector search | [OpenViking](./openviking) |
 | Typed memory taxonomy (world facts / experiences / mental models) + bank-based scoping | [Hindsight](./hindsight) |
 | 12+ semantic categories with bi-temporal validity (validFrom/validUntil) | [RetainDB](./retaindb) |
-| Universal RAG + memory layer, currently top of LongMemEval / LoCoMo / ConvoMem | [Supermemory](./supermemory) |
-| Coding-agent context tree (CLI + optional cloud sync; Elastic-licensed) | [ByteRover CLI](./byterover-cli) |
+| Universal RAG + memory layer; vendor-reported top scores on LongMemEval / LoCoMo / ConvoMem; engine not in the repo | [Supermemory](./supermemory) |
+| Coding-agent context tree (CLI + optional cloud sync; Elastic-licensed; the calling agent does the LLM work since mid-2026) | [ByteRover CLI](./byterover-cli) |
 | Procedural/working memory — versioned dependency-typed task graph on a Git-like SQL DB (Dolt), no vectors | [Beads](./beads) |
 | Local-first SQLite/FTS5 default with pluggable remote backends (Zep/Mem0/MemOS/OpenViking); durable local write-queue decouples agent turns from provider latency | [Paxm](./paxm) |
-| Conformance benchmark (the yardstick) | [StateBench](./statebench) |
+| Conformance benchmark (the yardstick; v2.0 re-scored after auditing its own scorer) | [StateBench](./statebench) |
 
 Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
 
@@ -70,8 +113,13 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   graph + KV store) with adaptive updates. Multi-level recall across
   user / session / agent scopes is its headline. Reported +26% accuracy
   over OpenAI memory and 91% faster responses in their benchmarks. Most
-  starred entry in this space (54k+) and the most explicit about being a
-  *layer* rather than a framework.
+  starred entry in this space (54k+ at the original pin) and the most
+  explicit about being a *layer* rather than a framework. Since the May
+  2026 pin, the docs say graph memory is a Platform feature removed from
+  OSS, `add()`/`update()` take an `expiration_date` that hides (never
+  deletes) expired memories, and the README's LoCoMo / LongMemEval scores
+  (vendor-reported) are attributed to the managed platform rather than
+  the open-source SDK.
 
 ### [neo](./neo)
 - **Repo:** https://github.com/Parslee-ai/neo — *A self-improving code
@@ -81,6 +129,9 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   is *the point*, not a feature bolted on. Worth comparing schema and
   write-policy choices against Mem0 and Graphiti. Smaller surface than
   the major players, which makes it easier to read end-to-end.
+- **Status:** retired on 2026-11-08. The README says the repo is archived
+  and development continues in CAR; 0.63.0 is the final release. The pin
+  stays as a finished reference design.
 
 ### [delta-mem](./delta-mem)
 - **Repo:** https://github.com/declare-lab/delta-Mem —
@@ -101,7 +152,10 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   LoCoMo, HotpotQA, IFEval, GPQA Diamond, and MemoryAgentBench. This is
   a research artifact (not a deployable library), and that's the point —
   it forces the question "is agent memory even a retrieval problem?"
-  that the system-level entries quietly assume.
+  that the system-level entries quietly assume. Upstream has changed
+  little since the May 2026 pin: the README now titles it a NeurIPS 2026
+  paper, and the experimental `synthetic_kv`, `latent_context`, and
+  `memory_branch` readouts were removed.
 
 ### [letta](./letta)
 - **Repo:** https://github.com/letta-ai/letta — *Platform for building
@@ -128,6 +182,10 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   (`system/persona.md`, `skills/.../SKILL.md`) and turns every memory
   edit into a commit — making it the closest entry in the study to our
   own `context-vigilance` discipline, but with the agent as committer.
+- **Status:** on 2026-08-15 upstream turned `main` into a landing page and
+  moved the V1 server code to the `archive` branch; active development is
+  in `letta-ai/letta-code`. The pinned `main` commit no longer contains the
+  server source, so the profile's paths resolve on `origin/archive`.
 
 ### [graphiti](./graphiti)
 - **Repo:** https://github.com/getzep/graphiti — *Build Real-Time Knowledge
@@ -136,8 +194,8 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   Daniel Chalef)
 - **Why this is here:** The only entry in the study that puts a real,
   typed, **bi-temporal graph** between the agent and its memories — four
-  interchangeable Cypher-flavoured backends (Neo4j, FalkorDB, Kuzu,
-  Neptune), a single-LLM-call episode-to-graph extraction pipeline with
+  interchangeable backends (Neo4j, FalkorDB, Neptune, and the embedded
+  Relate driver that replaced Kuzu in late 2026), a single-LLM-call episode-to-graph extraction pipeline with
   Pydantic-typed entities, hybrid BM25 + cosine + BFS recall with
   cross-encoder reranking, and label-propagation community detection.
   Every edge carries both `valid_at`/`invalid_at` (real-world validity)
@@ -167,7 +225,12 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   Inspired by Zettelkasten + Method of Loci (`MISSION.md`). The
   benchmark-honesty note in `BENCHMARKS.md:70-95` (the 100% headline
   involved teaching-to-test; the held-out figure is 98.4%) is worth
-  reading in its own right.
+  reading in its own right. Since the May 2026 pin (v3.3.5 → v3.12.0):
+  re-mines journal overwritten drawer text to `drawer_revisions.jsonl`
+  instead of losing it, five opt-in vector backends sit beside Chroma
+  (`sqlite_exact`, `rust_exact`, `milvus`, `qdrant`, `pgvector`), the
+  side knowledge graph gained `kg_supersede`, and the MCP server grew from
+  29 to 47 tools.
 
 ### [volt](./volt)
 - **Repo:** https://github.com/Martian-Engineering/volt — *Coding agent with
@@ -190,8 +253,9 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
 - **Repo:** https://github.com/safishamsi/graphify — *AI coding assistant
   skill that turns any folder of code, docs, papers, images, or videos
   into a queryable knowledge graph*
-- **Maintainer:** Safi Shamsi (`safishamsi`); MIT licensed; PyPI package
-  `graphifyy`
+- **Maintainer:** Safi Shamsi (`safishamsi`; the README now names
+  `Graphify-Labs/graphify` as the official repo); Apache-2.0 since
+  2026-07-22 (MIT before); PyPI package `graphifyy` (0.9.115 at this pin)
 - **Why this is here:** The codebase-as-memory bet. Where every other
   entry models *conversational* memory (user / session / agent turns),
   Graphify models the **static corpus an agent works against** as a
@@ -199,9 +263,10 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   **MCP** (`graphify/serve.py:1`). The pipeline is single-process and
   legible end-to-end: `detect → extract → build → cluster → analyze →
   report → export` (`ARCHITECTURE.md`), with tree-sitter parsers for
-  ~30 languages emitting `{nodes, edges}` dicts that get folded into a
+  ~40 languages (`graphify/extract.py` plus `graphify/extractors/`)
+  emitting `{nodes, edges}` dicts that get folded into a
   NetworkX graph, **Leiden community detection** via graspologic with a
-  NetworkX-Louvain fallback (`graphify/cluster.py:48-76`), and
+  NetworkX-Louvain fallback (`graphify/cluster.py:122-282`), and
   per-extraction **confidence labels** (`EXTRACTED` / `INFERRED` /
   `AMBIGUOUS`) carried on every edge so the agent can reason about how
   much to trust each relation. The MCP server exposes graph-query tools
@@ -213,14 +278,19 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   verbatim chunks; Graphify denies the graph-DB premise altogether and
   ships the graph as a single `graph.json` next to a static HTML viewer.
   A useful "do we even need a server?" data point in a study otherwise
-  dominated by server-backed designs.
+  dominated by server-backed designs. New since the May 2026 pin: 0.9.0
+  switched node IDs to full repo-relative paths (a breaking change for
+  saved graphs), the MCP server can run over HTTP as well as stdio, and
+  `graphify save-result` / `graphify reflect` write a `LESSONS.md` without
+  an LLM call, the first feature that records what the agent learned
+  rather than what the corpus contains.
 
 ### [understand-anything](./understand-anything)
 - **Repo:** https://github.com/Egonex-AI/Understand-Anything — *Turn any
   codebase, knowledge base, or docs into an interactive knowledge graph you
   can explore, search, and ask questions about*
 - **Maintainer:** Egonex-AI (`Egonex-AI` org; originally Lum1104 / Yuxiang
-  Lin, © Infinite Universe, Inc.); MIT; TypeScript plugin v2.8.1
+  Lin, © Infinite Universe, Inc.); MIT; TypeScript plugin v2.9.8
 - **Why this is here:** The study's matched pair to **Graphify** — same
   *codebase-as-memory* bet (model the static corpus, not conversation, as a
   knowledge graph), same tree-sitter substrate, same MIT multi-platform-plugin
@@ -234,18 +304,23 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   schema with explicit alias maps (`fn`/`method` → `function`, `extends` →
   `inherits`, `conflicts_with` → `contradicts`) — the cleanest worked example
   in the study of *how you trust a graph an LLM authored*
-  (`packages/core/src/schema.ts:18-78`). (2) **Recall:** Graphify ships an MCP
-  query server; Understand-Anything ships *no query API at all* — its eight
-  skills (`/understand`, `/understand-chat`, `/understand-diff`, …) instruct the
-  agent to **`grep` the single `.understand-anything/knowledge-graph.json`**,
-  and an Astro **dashboard** + dependency-ordered **guided tours** serve humans.
+  (`understand-anything-plugin/packages/core/src/schema.ts:18-76`). (2) **Recall:** Graphify ships an MCP
+  query server; Understand-Anything's skills (`/understand`, `/understand-chat`,
+  `/understand-diff`, …) instruct the agent to **`grep` the single
+  `.ua/knowledge-graph.json`** (`.understand-anything/` before 2.9, still honored
+  when present), and an Astro **dashboard** + dependency-ordered **guided tours**
+  serve humans. Since the June 2026 pin it also ships an optional read-only stdio
+  MCP server with six tools (status / search / explain / diff / onboard /
+  dashboard) that return explanations and impact reports rather than raw graph
+  traversal.
   Its ethos is "**graphs that teach > graphs that impress**." (3) **Scope:** a
   `kind: "codebase" | "knowledge"` switch plus five **knowledge** node types
   (article / entity / topic / claim / source) and knowledge edges
   (`cites` / `contradicts` / `builds_on`) point the same machinery at *prose and
   argument* (Karpathy-style LLM wikis, papers) — the only entry in the study
-  that models a knowledge base as a first-class graph subject. The schema is
-  rich (21 node types, 35 edge types across 8 categories; `types.ts:2-19`) and
+  that models a knowledge base as a first-class graph subject. A third kind,
+  `"design"`, now covers Figma files. The schema is
+  rich (27 node types, 38 edge types across 9 categories; `types.ts:1-20`) and
   the 42 tree-sitter language configs reach well past code into infra and docs
   (`terraform`, `kubernetes`, `dockerfile`, `openapi`, `markdown`). Deep
   write-up:
@@ -270,7 +345,11 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   since 2023, and it's the cleanest example in the study of separating
   *storage* from *understanding*. Worth comparing the deriver to Volt's
   deterministic summary thresholds — both are explicit, neither blocks
-  the agent loop.
+  the agent loop. Since the May 2026 pin (v3.0.7 → v3.6.2): 3.6.0 added
+  multi-tenancy, so every table carries `tenant_id` under row-level
+  security and collections are now unique on (tenant, observer, observed,
+  workspace); conclusions cite their source messages; and Qdrant and
+  ChromaDB joined the vector backends.
 
 ### [openviking](./openviking)
 - **Repo:** https://github.com/volcengine/OpenViking — *An open-source
@@ -283,8 +362,9 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   `viking://user/`, `viking://agent/` — with three abstraction tiers
   per node (**L0** one-sentence abstract, **L1** overview, **L2** full
   data) so retrieval can match at the coarsest tier and drill down
-  on demand. "Directory recursive retrieval" combines vector search
-  with hierarchical navigation. Unifies what every other study entry
+  on demand. Retrieval used to be a recursive directory walk; since
+  v0.4.23 (2026-09) it is one vector search scoped to a subtree, then one
+  rerank pass. Unifies what every other study entry
   treats as separate concerns: **memories** (user / agent task),
   **resources** (docs, repos), and **skills** (agent instructions)
   are all just nodes in the same tree. ByteDance-scale backing is the
@@ -292,7 +372,11 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   deploy). The interesting compare-and-contrast is against Letta's
   git-backed memory mode (which also renders memory as files but on a
   flat-ish layout) and against Graphify (which also collapses
-  resource-as-context but as a knowledge graph rather than a tree).
+  resource-as-context but as a knowledge graph rather than a tree). Other
+  changes by v0.5.5: the Python embedded mode is gone (server only), the
+  agent identity dimension was replaced by account / user / peer, and a
+  new OpenViking Gateway proxies an agent's model API and adds memory to
+  each turn.
 
 ### [hindsight](./hindsight)
 - **Repo:** https://github.com/vectorize-io/hindsight — *Agent memory
@@ -312,6 +396,14 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   contrast against Mem0 is direct: same hybrid-retrieval thesis, but
   Hindsight argues the *type of memory* (epistemic vs. experiential
   vs. inferential) should drive write, not just retrieval ranking.
+  Hindsight reached 1.0 on 2026-10-13 and v1.2.3 at this pin. The
+  per-agent plugins (Claude Code, Codex, opencode, Cline, and others)
+  were replaced by one cross-agent package,
+  `hindsight-integrations/coding-agents/`
+  (`@vectorize-io/hindsight-coding-agents`), which keeps one memory bank
+  per repository shared by every agent working it and seeds that bank
+  from git history and past sessions. The Claude Code marketplace at the
+  repo root was deleted on 2026-10-23.
 
 ### [retaindb](./retaindb)
 - **Repo:** https://github.com/RetainDB/RetainDB — *Durable memory for
@@ -333,26 +425,33 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   Mem0 is direct on the supersession axis (Mem0 has none in OSS;
   RetainDB makes it a first-class column) and against Neo on the
   *typed-categories-vs-typed-facts* axis (Neo carries a `superseded_by`
-  chain on a single fact type; RetainDB enumerates categories).
+  chain on a single fact type; RetainDB enumerates categories). Since the
+  May 2026 pin the local runtime gained an agent filesystem
+  (`.retaindb/files/`) and connectors; the `LICENSE-BSL` file the README
+  references is still absent.
 
 ### [supermemory](./supermemory)
 - **Repo:** https://github.com/supermemoryai/supermemory — *The memory
   and context layer for AI*
 - **Maintainer:** supermemoryai research lab; MIT
-- **Why this is here:** The current benchmark-leaderboard occupant —
-  ranked **#1 on LongMemEval, LoCoMo, and ConvoMem** as of mid-2026,
+- **Why this is here:** The vendor-reported benchmark-leaderboard occupant —
+  self-reported **#1 on LongMemEval, LoCoMo, and ConvoMem** as of mid-2026,
   the three headline harnesses every other entry in this study reports
   against (compare to MemPalace's 96.6% R@5 on LongMemEval and Mem0's
   91.6 / 93.4 on LoCoMo / LongMemEval — the leaderboard moves fast).
-  At ~22.7k stars and 1,600+ commits, the most active OSS entry after
-  Mem0 / Letta. Design surface is the **universal RAG + memory** bet:
+  At ~22.7k stars and 1,600+ commits at the original pin (not
+  re-verified), one of the most active OSS entries. Design surface is the **universal RAG + memory** bet:
   fact extraction from conversations + user-profile maintenance +
   hybrid search + multimodal ingest + external connectors (Google
   Drive, Notion, GitHub) that sync content into the same store. Scopes
   are `containerTag` (typically a user id) plus optional project tags.
   Claims to handle "temporal changes, contradictions, and automatic
   forgetting" — which makes the comparison against StateBench (the
-  yardstick) the obvious next step.
+  yardstick) the obvious next step. Since the May 2026 pin: a breaking v5
+  API renames `containerTag` to `namespace`, the MCP server was rewritten
+  under `apps/mcp/src/server/`, and a self-hosted engine binary
+  (`supermemory-server`) exists, but the docs say it is built from a
+  non-public codebase, so the engine is still not in this repo.
 
 ### [byterover-cli](./byterover-cli)
 - **Repo:** https://github.com/campfirein/byterover-cli — *Memory Hub
@@ -369,8 +468,12 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   knowledge into a **context tree** with local file-based storage and
   optional cloud sync. Project-level scope (per directory),
   multi-machine access, team sharing via ByteRover Cloud. Integrates
-  with Cursor, Claude Code, and 20+ LLM providers as the consumer
-  surface. The reason it earns a pin despite the licensing caveat:
+  with Cursor, Claude Code, and other coding agents as the consumer
+  surface. Since mid-2026 ByteRover no longer runs its own LLM for
+  curate, query, or dream: "tool mode" is the default and the calling
+  agent does that work. Topic files moved from Markdown to HTML with
+  `<bv-*>` elements (`brv migrate` converts a tree), and the
+  `providers` / `model` commands were removed. The reason it earns a pin despite the licensing caveat:
   the **CLI + REPL + dashboard** packaging is a distinct deployment
   story (most other entries assume the agent is the only consumer; here
   the human and the agent are both editors of the same context tree)
@@ -414,7 +517,12 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   The cleanest pairing is Beads vs Volt (both coding-agent, both
   database-backed — and mind the trap: Volt's *eviction mode* is named
   "Dolt" while Beads is *built on* Dolt the DB); the cleanest contrast is
-  Beads vs every vector-backed entry. Deep write-up:
+  Beads vs every vector-backed entry. Since the May 2026 pin (v1.0.4 →
+  v1.3.4 stable): local storage is still Dolt-only (PostgreSQL and MySQL
+  adapters were added and rolled back before release); new are `bd serve`
+  (HTTP), an experimental HTTP backend (`bd connect`), an opt-in events
+  journal, and size caps on what `bd prime` injects. Recall still uses no
+  embeddings. Deep write-up:
   [`context-v/profiles/Profile__Beads.md`](./context-v/profiles/Profile__Beads.md).
 
 ### [paxm](./paxm)
@@ -440,7 +548,10 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   breadth is the other headline — native Claude Code plugin (5 hooks),
   native Codex plugin, local OpenCode/Pi plugins, plus a stdio MCP server —
   more agent-harness surface area than most other entries in this study
-  attempt. Early-stage (152★, 34 releases, 161 commits) with active
+  attempt. v0.2.5 at this pin adds a `team-memory` backend that sends
+  each write under its own agent's credential from a local paxl device,
+  and an optional per-provider cap on recall hits. Early-stage (152★,
+  34 releases, 161 commits at the original pin) with active
   CI/CD including optional real-agent regression evals. Deep write-up:
   [`context-v/profiles/Profile__Paxm.md`](./context-v/profiles/Profile__Paxm.md) —
   covers the squared-reciprocal-rank cross-provider ranking calibrator
@@ -456,7 +567,10 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   fills a different slot in the study. Pinning it lets us evaluate the
   memory-layer implementations against a common harness, instead of
   trusting each project's self-reported numbers. Pair it with Mem0 and
-  neo as the units under test.
+  neo as the units under test. v2.0.0 (2026-08-04) audited its own scorer
+  and found six defects; the worst counted correct answers that named a
+  superseded value in order to reject it as resurrections. The 1.x
+  numbers are retracted, so cite only 2.x results.
 
 ---
 

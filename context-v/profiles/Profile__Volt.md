@@ -12,7 +12,7 @@ date_created: 2026-05-17
 site_uuid: 5a8b5cff-a6ee-4751-8329-c913b3d76002
 hex_code: seo1hr
 date_authored_initial_draft: 2026-05-17
-date_authored_current_draft: 2026-05-17
+date_authored_current_draft: 2026-11-23
 lede: >-
   Numeric thresholds decide when to compact, and the model is only ever asked
   to write summaries. Long-horizon coding as a DB problem.
@@ -31,7 +31,7 @@ summary: >-
   with explicit numbers instead of letting the model decide.
 publish: true
 title: Volt — Profile
-date_modified: 2026-08-18
+date_modified: 2026-11-23
 authors:
   - Michael Staton
 status: Reference
@@ -291,6 +291,10 @@ Volt is: embedded Postgres, a multi-level summary DAG, async background compacti
 They aren't competitors — they answer different questions. `context-vigilance` answers "how should a team and its agents keep durable, reviewed knowledge about a project?" Volt answers "how does a coding agent stay coherent across a session that lasts a week?" You can run a Volt session inside a project that uses `context-vigilance` and the markdown files become tool-reads inside Volt's immutable log; the two compose cleanly.
 
 The interesting transferable lesson from Volt back to `context-vigilance`: the soft/hard threshold pattern + deterministic escalation is a generally useful idea. If we ever build agent-facing summary indexes over `context-v/` directories, doing it with explicit numeric thresholds rather than "the LLM decides" is the lesson worth lifting.
+
+## Changes since the previous pin (2026-02-27 → 2026-02-27)
+
+No change. The 2026-11-23 refresh found the upstream default branch `dev` still at `4f227134c467` (0 commits, nearest tag v0.6.2). Several feature and fix branches exist on the remote, but none has merged to `dev`, so every citation above still holds.
 
 ## One-line summary
 

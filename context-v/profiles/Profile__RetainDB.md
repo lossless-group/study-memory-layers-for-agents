@@ -12,7 +12,7 @@ date_created: 2026-05-26
 site_uuid: b4d07a39-ed4f-4755-a346-503789666587
 hex_code: 6r9bh1
 date_authored_initial_draft: 2026-05-26
-date_authored_current_draft: 2026-05-26
+date_authored_current_draft: 2026-11-23
 lede: >-
   Supersession as an actual indexed column — `validUntil`, `supersededBy` —
   rather than something the ranker is hoped to handle.
@@ -30,7 +30,7 @@ summary: >-
   verify server license terms upstream before any commercial planning.
 publish: true
 title: RetainDB — Profile
-date_modified: 2026-08-18
+date_modified: 2026-11-23
 authors:
   - Michael Staton
 status: Reference
@@ -47,7 +47,7 @@ RetainDB is a memory layer for AI agents that takes the same library/server/clou
 
 It ships as a pnpm/turbo monorepo of four packages: a **single-process local runtime** (`@retaindb/local`, Apache-2.0) that runs on port 3111 with an atomic disk snapshot + append-only journal under `~/.retaindb/`; a **TypeScript SDK** (`@retaindb/sdk`, Apache-2.0) with adapters for Vercel AI SDK, LangChain, and LangGraph; an **MCP server** (`@retaindb/mcp`, Apache-2.0) exposing `memory_save`, `memory_smart_search`, `context`, `recall`, `handoff`, and friends; and a **Postgres + pgvector server** (`@retaindb/server`, **BSL-1.1**) with the full schema, hybrid retrieval, and ~20 ingestion connectors. The licensing split is the operative business-model wrinkle: the local/SDK/MCP path is permissive; running the server as a commercial hosted product requires a commercial license.
 
-Retrieval is **hybrid by construction**. The server fuses vector + BM25 with weighted Reciprocal Rank Fusion (`packages/server/src/engine/retriever.ts:1429-1481`, default weights 0.7/0.3, RRF k=60), then optionally runs an LLM/cross-encoder reranker. The local runtime in `packages/local/src/cli.ts:578-620` fuses three signals (BM25 + vector + graph-via-concept-overlap) under RRF and layers `recency + decay + durability + reinforcement` heuristics on top. The marketing line *"BM25 + vector + graph retrieval with RRF and reranking"* (README.md:108) maps directly to that code.
+Retrieval is **hybrid by construction**. The server fuses vector + BM25 with weighted Reciprocal Rank Fusion (`packages/server/src/engine/retriever.ts:1429-1481`, default weights 0.7/0.3, RRF k=60), then optionally runs an LLM/cross-encoder reranker. The local runtime in `packages/local/src/cli.ts:822-905` fuses three signals (BM25 + vector + graph-via-concept-overlap) under RRF and layers `recency + decay + durability + reinforcement` heuristics on top. The marketing line *"BM25 + vector + graph retrieval with RRF and reranking"* (README.md:129) maps directly to that code.
 
 If you want one sentence: **RetainDB is Mem0's shape with a richer type enum, bi-temporal supersession baked into Postgres columns, a local-first single-process runtime that does not require Postgres at all, and a dual-license posture that gives away the agent-side primitives while gating the commercial-hosting path.**
 
@@ -58,19 +58,20 @@ Two bets distinguish RetainDB from the rest of the field:
 1. **Semantic memory typing is load-bearing.** Where Mem0 ships an optional `memory_type` string used mostly as metadata, RetainDB writes 13 canonical types into the type system itself (`packages/server/src/engine/memory/types.ts:6-19`) and the importance-decay policy keys off them (`packages/server/src/engine/memory/importance-decay.ts:34` — `factual` and `instruction` are flagged as `permanentTypes` that *never* decay). The bet: agents accumulate different kinds of memory with structurally different lifetimes, and the store should know which is which.
 2. **Supersession is a column, not a vibe.** Every `Memory` row has `validFrom`, `validUntil`, `supersededBy`, `version`, and `isActive` (`schema.prisma:243-246`). When a new memory invalidates an old one — either because relation extraction returned a `RelationType` of `updates` or `contradicts`, or because the caller passed an explicit `supersedes_ids` (`packages/server/src/engine/memory/write.ts:951-962, 1021-1031`) — the old memory's `validUntil` is set to `now()`, `supersededBy` is set to the new id, `isActive` is flipped to false. The default search where-clause filters them out (`packages/server/src/engine/memory/search.ts:477` — `"validUntil" IS NULL OR "validUntil" > NOW()`). This is the direct contrast to [[Profile__Mem0]]'s "append-only with no supersession in OSS" posture.
 
-A third operational bet matters at the org-level: **the local runtime intentionally has zero infrastructure dependencies** — no Postgres, no Redis, no Kafka, no Qdrant, no API keys (README.md:68). One npx command, one Node process, one JSON snapshot, one journal file. This is what makes "coding-agent memory on your laptop" tractable in a way the Mem0 self-hosted Docker compose stack is not.
+A third operational bet matters at the org-level: **the local runtime intentionally has zero infrastructure dependencies** — no Postgres, no Redis, no Kafka, no Qdrant, no API keys (README.md:89). One npx command, one Node process, one JSON snapshot, one journal file. This is what makes "coding-agent memory on your laptop" tractable in a way the Mem0 self-hosted Docker compose stack is not.
 
 ## Storage topology
 
 | Layer | Backend | Purpose | Code |
 |---|---|---|---|
-| **Local primary** | Atomic JSON snapshot + append-only JSONL journal | Memories, projects, shares, context snapshots — all under `~/.retaindb/` | `packages/local/src/cli.ts:56-70` |
-| **Local embeddings** | hash-vector default; `@xenova/transformers` optional | Per-memory `embedding: number[]` on the in-memory record | `packages/local/src/cli.ts:72-75`, README.md:141 |
+| **Local primary** | Atomic JSON snapshot + append-only JSONL journal | Memories, projects, shares, context snapshots — all under `~/.retaindb/` | `packages/local/src/cli.ts:99-102` |
+| **Local embeddings** | hash-vector default; `@xenova/transformers` optional | Per-memory `embedding: number[]` on the in-memory record | `packages/local/src/cli.ts:396-412`, README.md:162 |
 | **Server primary** | Postgres 16 + pgvector | `memories` (bi-temporal), `memory_relations`, `chunks` + `embeddings`, `entities` + `entity_relations`, `sessions` + `messages` | `schema.prisma:1-10, 215-349`, `docker-compose.yml:4-19` |
 | **Server graph** | Same Postgres — `entity_relations` and `memory_relations` adjacency tables, no Neo4j | Cross-memory and cross-entity edges live in relational tables, not a graph DB | `schema.prisma:274-303, 332-349` |
-| **Connectors** | Server-only | GitHub, Web/Sitemap, PDF, Notion, Confluence, Slack, Discord, arXiv, npm, PyPI, HuggingFace, Plain text | `packages/server/src/connectors/` (21 files) |
+| **Connectors (server)** | Server | GitHub, Web/Sitemap, PDF, Notion, Confluence, Slack, Discord, arXiv, npm, PyPI, HuggingFace, Plain text | `packages/server/src/connectors/` (21 files) |
+| **Connectors (local)** | Local runtime, since June 2026 | Web, URL, Sitemap, GitHub, Slack, Notion, Confluence; source registry and sync under `~/.retaindb/` | `packages/local/src/connectors/`, `packages/local/src/sources/` |
 
-The architectural choice that contrasts with [[Profile__Mem0]] and [[Profile__Graphiti]]: **no separate graph database**. Graph signals come from the same relational store via the `MemoryRelation` and `EntityRelation` tables (`schema.prisma:274-291, 332-349`), plus a runtime-computed concept-overlap boost in the local engine (`cli.ts:642-650`). RetainDB is happy to call this a "memory graph" without ever standing up Neo4j.
+The architectural choice that contrasts with [[Profile__Mem0]] and [[Profile__Graphiti]]: **no separate graph database**. Graph signals come from the same relational store via the `MemoryRelation` and `EntityRelation` tables (`schema.prisma:274-291, 332-349`), plus a runtime-computed concept-overlap boost in the local engine (`cli.ts:863-867, 957`). RetainDB is happy to call this a "memory graph" without ever standing up Neo4j.
 
 ## Schema of a memory record
 
@@ -131,7 +132,7 @@ export type MemoryType =
   | "workflow";     // Reusable workflow or agent habit
 ```
 
-The SDK `MemoryKind` (`packages/sdk/src/index.ts:207-220`) mirrors these 13 values. The relation enum (`types.ts:21-26`):
+The SDK `MemoryKind` (`packages/sdk/src/index.ts:245-258`) mirrors these 13 values. The relation enum (`types.ts:21-26`):
 
 ```ts
 export type RelationType =
@@ -162,7 +163,7 @@ Consolidation runs separately (`packages/server/src/engine/memory/consolidation.
 
 ## Recall API
 
-The library/SDK surface (`packages/sdk/src/retaindb.ts:82-110`) is fluent and CRUD-shaped:
+The library/SDK surface (`packages/sdk/src/retaindb.ts:82-106`, implementation from `:234`) is fluent and CRUD-shaped:
 
 ```ts
 const db = new RetainDB({ apiKey, baseUrl, project });
@@ -174,7 +175,7 @@ await db.user(userId).forget(memoryId);                           // delete
 const turn = await db.user(userId).runTurn({ messages, generate });
 ```
 
-The REST surface (`packages/local/src/cli.ts:971-1130`, `packages/server/src/api/`) is wider:
+The REST surface (`packages/local/src/cli.ts:1580-1970`, `packages/server/src/api/`) is wider:
 
 | Verb | Path | What |
 |---|---|---|
@@ -188,6 +189,8 @@ The REST surface (`packages/local/src/cli.ts:971-1130`, `packages/server/src/api
 | POST | `/v1/context/code-map` | Compact file + symbol map |
 | POST | `/v1/memory/ingest/session` | Ingest messages + work events |
 | GET  | `/v1/memory/session/:id`, `/v1/memory/profile/:userId` | Session / profile listings |
+| GET/POST | `/v1/filesystem`, `/v1/filesystem/sync`, `/v1/filesystem/write` | Local only: read, regenerate, or write the `.retaindb/files/` agent filesystem (added June 2026) |
+| GET/POST | `/v1/sources`, `/v1/sources/:id/sync`, `/v1/company-brain/ask` | Local only: connector sources and the "company brain" aggregator (added June 2026) |
 
 Hybrid retrieval in the server (`packages/server/src/engine/retriever.ts:404-507`) runs four signal streams in parallel, then fuses:
 
@@ -205,7 +208,7 @@ if (rerank) allResults = await rerankResults(query, allResults, ...);
 
 The `reciprocalRankFusion` (`retriever.ts:1429-1481`) is a weighted RRF: `rrfScore = weight / (k + rank + 1)` per stream, summed across streams, with results re-tagged `source: "hybrid"` when they appeared in both vector and BM25 lists. The reranker (`retriever.ts:1493+`) uses a cross-encoder fast path with an LLM fallback when confidence is low — quoted internal target is "93% accuracy at 260ms avg, only 20% use LLM" (`retriever.ts:1488-1492`).
 
-The local engine's equivalent (`packages/local/src/cli.ts:540-620`) computes BM25 + cosine + graph-via-concept-overlap, ranks each signal, sums `1 / (RRF_K + rank)` across them, then adds heuristic scores: `score = rrf * 100 + importance + confidence + recency + decay + durability + reinforcement`. The `durability` term keys directly off `memory_type` (`cli.ts:575` — `semantic: 0.7, procedural: 0.6, correction: 0.5, session_summary: 0.35, else: 0`), which is what the type enum buys you operationally.
+The local engine's equivalent (`packages/local/src/cli.ts:822-905`) computes BM25 + cosine + graph-via-concept-overlap, ranks each signal, sums `1 / (RRF_K + rank)` across them, then adds heuristic scores: `score = rrf * 100 + importance + confidence + recency + decay + durability + reinforcement + typeIntent + quality * 0.28 + sourceAuthority` (`cli.ts:904`). The `durability` term keys directly off `memory_type` through a `MEMORY_TYPE_WEIGHT` table (`cli.ts:73-89`, applied at `cli.ts:880`) that now covers the 13 canonical types: `decision` 0.78, `constraint` 0.75, `preference`/`solution` 0.72, `workflow` 0.7, down to `factual` 0.42 and `event` 0.18. At the previous pin this was a four-way ternary over `semantic`/`procedural`/`correction`/`session_summary`. The table is what the type enum buys you operationally.
 
 ## Eviction & compaction
 
@@ -242,19 +245,21 @@ Compared to [[Profile__Mem0]]'s tri-axis `user_id`/`agent_id`/`run_id` (all opti
 | **Self-hosted server** (`@retaindb/server`) | `docker compose up` — Hono + Prisma + Postgres 16 + pgvector | Postgres tables per `schema.prisma` | **BSL-1.1** | Team / product backend; full connector + relation graph |
 | **Hosted cloud** (`api.retaindb.com`) | Managed | Managed | Commercial | Multi-tenant auth, dashboards, billing, lifecycle email |
 
-The MCP layer (`@retaindb/mcp`) is shared infrastructure — the same MCP package speaks to all three deployment modes by varying `RETAINDB_BASE_URL`. Tools exposed (`packages/mcp/src/server.ts:203-957`): `memory_save`, `memory_smart_search`, `memory_sessions`, `context`, `agent_event`, `recall`, `session_history`, `handoff`, `resume_handoff`, plus a longer tail for replay and observation. The local runtime ships first-class `connect all` setup for Codex, Claude Code, and OpenCode (README.md:56-60).
+The MCP layer (`@retaindb/mcp`) is shared infrastructure — the same MCP package speaks to all three deployment modes by varying `RETAINDB_BASE_URL`. Tools exposed (`packages/mcp/src/server.ts:203-957`): `memory_save`, `memory_smart_search`, `memory_sessions`, `context`, `agent_event`, `recall`, `session_history`, `handoff`, `resume_handoff`, plus a longer tail for replay and observation. The local runtime ships first-class `connect all` setup for Codex, Claude Code, and OpenCode (README.md:77-81).
 
-The BSL-1.1 split is the operative business posture. From `README.md:494-501`: *"`packages/server`: Business Source License 1.1 — Self-hosting is free. Building a hosted service on top of the server requires a commercial license."* Note: the `LICENSE-BSL` file the README references is not present in the pinned submodule snapshot (only the Apache-2.0 `LICENSE` at the root). The server package's `package.json` has no `license` field at all, so the actual license terms must be read from the upstream repo before any commercial planning.
+The BSL-1.1 split is the operative business posture. From `README.md:515-522`: *"`packages/server`: Business Source License 1.1 — Self-hosting is free. Building a hosted service on top of the server requires a commercial license."* Note: the `LICENSE-BSL` file the README references is not present in the pinned submodule snapshot (only the Apache-2.0 `LICENSE` at the root). The server package's `package.json` has no `license` field at all, so the actual license terms must be read from the upstream repo before any commercial planning.
 
 ## What's inside this submodule
 
 | Path | What's there | License |
 |---|---|---|
-| `packages/local/` | One-process local runtime — Hono server, journal, viewer, RRF retrieval, connect-all CLI; one 1,965-line `cli.ts` | Apache-2.0 |
+| `packages/local/` | One-process local runtime: Hono server, journal, viewer, RRF retrieval, connect-all CLI (3,565-line `cli.ts`), plus `connectors/`, `sources/`, `brain/company_brain.ts`, `filesystem/`, and a `Dockerfile` | Apache-2.0 |
 | `packages/sdk/` | TypeScript SDK with adapters for Vercel AI SDK, LangChain (`adapters/langgraph.ts`), tool-call shim, `RetainDB` fluent class, `whisper-agent` for background extraction | Apache-2.0 |
 | `packages/mcp/` | MCP server exposing ~19 tools; speaks to local or server via `RETAINDB_BASE_URL` | Apache-2.0 |
 | `packages/server/` | Postgres + pgvector backend, Prisma schema (703 lines), Hono API, 21 connectors, full memory engine (`engine/memory/` — write, search, relations, consolidation, temporal, decay, extractor) | **BSL-1.1** (per README; LICENSE-BSL file missing from snapshot) |
 | `docker-compose.yml` | pgvector/pgvector:pg16 + server | — |
+| `docker-compose-local.yml` | Local runtime (API `:3111` + viewer `:3113`) in a container | — |
+| `examples/` | `custom-llm.mjs`, `vercel-ai-sdk.mjs` | — |
 | `pnpm-workspace.yaml`, `turbo.json` | Workspace orchestration | — |
 
 If you only read one file: `packages/server/prisma/schema.prisma` — the bi-temporal columns, the relation table, the entity store, and the index choices (`@@index([validFrom, validUntil])`, `@@index([supersededBy])`) tell the architectural story in 700 lines.
@@ -263,7 +268,7 @@ If you only read one file: `packages/server/prisma/schema.prisma` — the bi-tem
 
 - **Type your memories.** The 13-type enum is the lever that makes `durability`, decay-immunity, and rerank-bonuses do useful work. A memory you wrote as `"factual"` will never decay; one you wrote as `"event"` will. Choosing badly is choosing wrong on a load-bearing axis.
 - **Treat `correction` as the supersession verb.** If the user says "actually it's X, not Y", write `memory_type: "correction"` and either let relation-detection find the target or pass `supersedes_ids` explicitly (`write.ts:951-962`). Mem0's "two memories, both true-looking" failure mode is exactly what this is designed to prevent.
-- **Start local, graduate when you need connectors or multi-tenancy.** The local runtime has no Postgres dependency and no API key requirement. It is structurally the same memory model, minus the connectors and the relational graph tables. Most prototypes never need to graduate.
+- **Start local, graduate when you need connectors or multi-tenancy.** The local runtime has no Postgres dependency and no API key requirement. It is structurally the same memory model, minus the relational graph tables and the server's longer connector list (the local runtime gained seven connectors in June 2026). Most prototypes never need to graduate.
 - **Use the MCP package for editor agents.** It's Apache-2.0, it ships `connect all` snippets for the three big coding agents, and it speaks to local or server identically.
 - **If you're building a product, read the server license before you scale.** Self-hosting is free; building a hosted memory service on top of `packages/server` is not.
 
@@ -290,6 +295,16 @@ If you only read one file: `packages/server/prisma/schema.prisma` — the bi-tem
 | **License** | **Apache-2.0 + BSL-1.1 (server)** | Apache-2.0 | Apache-2.0 | Apache-2.0 |
 | **MCP** | First-class, Apache-2.0 package | Editor plugins | MCP plugin | Indirect via Zep |
 | **Best fit** | Coding-agent memory + product memory where supersession matters | General agent memory at benchmark-tuned latency | Code assistants that improve over time | "When did X change?" graph queries |
+
+## Changes since the previous pin (2026-05-24 → 2026-06-12)
+
+- Old pin `43499354642b`, new pin `2ad2cc4d6d58`, 8 commits (7 plus one merge of an outside contributor's PR). No tags; `@retaindb/local` is at `0.2.2` in `packages/local/package.json`.
+- **Agent filesystem** (commit `371e60f`). `packages/local/src/filesystem/` mirrors memory into a repo-local `.retaindb/files/` tree (`filesystem/paths.ts`) so several agents can coordinate through files. `retaindb files sync|read|write` and `/v1/filesystem*` endpoints expose it; `filesystem/write` promotes a note or handoff back into memory (`packages/local/README.md`). This is the closest RetainDB gets to the `context-vigilance` file-first pattern, though the files are generated from the store, not the source of truth.
+- **Connectors and "company brain" in the local runtime** (commit `0370ae9`). `packages/local/src/connectors/` adds web, URL, sitemap, GitHub, Slack, Notion, and Confluence; `sources/` stores and syncs them; `brain/company_brain.ts` aggregates connector-ingested memories into a cited, source-aware context with `/v1/company-brain/ask`. Before this, connectors were server-only.
+- **Local ranking now weights all 13 memory types** via `MEMORY_TYPE_WEIGHT` (`cli.ts:73-89`) and adds `typeIntent`, `quality`, and `sourceAuthority` terms (`cli.ts:869-904`). Line citations into `cli.ts` above were re-located; it grew from 1,965 to 3,565 lines.
+- **SDK** (`packages/sdk/src/index.ts`, `retaindb.ts`) adds source management, context-filesystem reads, and user-model/gap calls.
+- **Container option for local** (`docker-compose-local.yml`, `packages/local/Dockerfile`, README "Or use docker compose").
+- **License:** unchanged split. The commercial-license contact in `README.md:522` moved to a named person. `LICENSE-BSL` is still absent from the repo, so the server's BSL terms remain unverified from source.
 
 ## One-line summary
 
