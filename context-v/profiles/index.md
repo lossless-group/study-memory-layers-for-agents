@@ -9,6 +9,7 @@
 * [Honcho — Profile](Profile__Honcho.md) - Collections are unique on (observer, observed, workspace) — Honcho indexes memory by relationship rather than by user.
 * [Letta — Profile](Profile__Letta.md) - The one entry where the agent itself — not an extraction pipeline, not a background summarizer — is the memory manager (V1 server code now on the archive branch).
 * [Mem0 — Profile](Profile__Mem0.md) - Despite the graph-memory marketing, the graph is an array of linked memory IDs hanging off spaCy-extracted entities.
+* [Meko — Profile](Profile__Meko.md) - A database company's memory layer that runs locally on SQLite, not YugabyteDB: mem0 with its LLM removed, scoped by governed datapacks, with the user's own Claude Code doing extraction.
 * [MemPalace — Profile](Profile__MemPalace.md) - The counter-bet: extract nothing. Raw 800-character chunks score 96.6% R@5 on LongMemEval at zero LLM calls.
 * [Neo — Profile](Profile__Neo.md) - Familiar high-confidence queries get dialled down to low reasoning effort — memory shows up as a smaller bill, not better accuracy. (Retired 2026-11-08.)
 * [OpenViking — Profile](Profile__OpenViking.md) - Memories, resources, and skills collapse into one `viking://` tree. Retrieval used to walk that tree recursively; since v0.4.23 it is one global vector search scoped by it.

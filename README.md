@@ -100,6 +100,7 @@ Status changes a reader should know about:
 | Coding-agent context tree (CLI + optional cloud sync; Elastic-licensed; the calling agent does the LLM work since mid-2026) | [ByteRover CLI](./byterover-cli) |
 | Procedural/working memory — versioned dependency-typed task graph on a Git-like SQL DB (Dolt), no vectors | [Beads](./beads) |
 | Local-first SQLite/FTS5 default with pluggable remote backends (Zep/Mem0/MemOS/OpenViking); durable local write-queue decouples agent turns from provider latency | [Paxm](./paxm) |
+| Governed datapacks as the unit of scope and sharing (local SQLite + sqlite-vec edge of a hosted cloud; mem0 without its LLM, extraction by the user's own Claude Code) | [Meko](./meko) |
 | Conformance benchmark (the yardstick; v2.0 re-scored after auditing its own scorer) | [StateBench](./statebench) |
 
 Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
@@ -558,6 +559,28 @@ Deep per-entry write-ups live in [`context-v/profiles/`](./context-v/profiles).
   (`internal/memory/ranking.go`), the checksummed SQLite-WAL durable write
   queue (`internal/capturequeue/queue.go`), and the exact-fingerprint (not
   semantic) LTM admission policy.
+
+### [meko](./meko)
+- **Repo:** https://github.com/yugabyte/meko — *The Context Engine for
+  Agentic Applications*
+- **Maintainer:** Yugabyte; Apache-2.0. Added 2026-11-23, pinned at
+  `7bb83da` (release `meko-v1.20261123.0`).
+- **Why this is here:** The study's clearest case of the **datapack** as the
+  unit of agent memory: a named, UUID-keyed workspace that holds memories,
+  knowledge files, conversation turns, decision traces and artifacts
+  together, served over MCP and REST in the same wire format as the hosted
+  Meko Cloud, so a datapack moves to Cloud unchanged. Locally it is upstream
+  mem0 in a Node child process with its LLM stubbed out, on a SQLite file
+  (sqlite-vec + FTS5) partitioned by datapack, capped at 200 MB so search
+  stays fast. Extraction is done by the user's own headless `claude -p` on
+  Haiku. Two things no other entry has: memories move from "learning" to
+  "kept" to "collective memory", and Context Gaps logs searches that found
+  nothing useful as a queue of questions to teach. Its `MEKO.md` convention
+  (a per-folder table of datapacks to search before touching code) is the
+  same move as our CLAUDE.md "query Chroma first" rule, and its Kode
+  extension enforces it from code. Access roles and the "gotchas" miner live
+  only in the private Meko Cloud. Deep write-up:
+  [`context-v/profiles/Profile__Meko.md`](./context-v/profiles/Profile__Meko.md).
 
 ### [statebench](./statebench)
 - **Repo:** https://github.com/Parslee-ai/statebench — *Conformance test

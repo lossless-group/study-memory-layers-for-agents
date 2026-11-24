@@ -52,3 +52,6 @@
 [submodule "paxm"]
 	path = paxm
 	url = https://github.com/pax-beehive/paxm.git
+[submodule "meko"]
+	path = meko
+	url = https://github.com/yugabyte/meko.git
